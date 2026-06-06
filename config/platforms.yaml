@@ -1,0 +1,12 @@
+simplismart:
+  base_url: "${SIMPLISMART_BASE_URL}"
+  api_key: "${SIMPLISMART_API_KEY}"
+  model: "${SIMPLISMART_MODEL_ID}"
+  # Simplismart dedicated deployments require this header on every request
+  extra_headers:
+    id: "${SIMPLISMART_DEPLOYMENT_ID}"
+
+fireworks:
+  base_url: "https://api.fireworks.ai/inference/v1"
+  api_key: "${FIREWORKS_API_KEY}"
+  model: "${FIREWORKS_MODEL_ID}"

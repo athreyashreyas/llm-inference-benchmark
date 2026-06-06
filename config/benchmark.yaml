@@ -1,0 +1,23 @@
+generation:
+  temperature: 0.7
+  top_p: 1.0
+  short_max_tokens: 50
+  medium_max_tokens: 150
+  long_max_tokens: 200
+
+warmup:
+  requests: 3
+  discard: true
+
+timeouts:
+  first_request_seconds: 90
+  subsequent_seconds: 30
+
+retry:
+  max_attempts_on_5xx: 2
+  max_attempts_on_429: 3
+  backoff_base_seconds: 1.0
+
+cost_guard:
+  warn_at_usd: 1.00
+  abort_at_usd: 4.50
