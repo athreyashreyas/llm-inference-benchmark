@@ -91,7 +91,9 @@ SCENARIOS = [
     {"id": "E10", "platform": "fireworks",   "prompt_type": "long",   "max_tokens": 200, "concurrency": 10, "reps": 10, "priority": "p1"},
 ]
 
-# Cost per million tokens (input + output blended estimate, conservative)
+# Cost per million tokens used for the in-flight cost guard only (not for CSV reporting).
+# Intentionally conservative: blended input+output rate, Fireworks higher to account for
+# uncertainty on dedicated GPU token pricing. Reporting uses metrics.py COST_PER_M_OUTPUT_TOKENS.
 COST_PER_M_TOKENS = {
     "simplismart": 0.10,
     "fireworks": 0.20,

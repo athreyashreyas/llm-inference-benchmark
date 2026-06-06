@@ -36,8 +36,6 @@ This log captures every friction point encountered while attempting to deploy an
 
 ---
 
----
-
 ## Simplismart — Wrong base URL in external spec / no canonical source of truth
 
 - Stage: api-discovery
@@ -83,8 +81,6 @@ This log captures every friction point encountered while attempting to deploy an
 - Evidence: Fireworks API key creation docs state "Bearer authentication using your Fireworks API key" is required. See `docs.fireworks.ai/api-reference/create-api-key.md`.
 - Product impact: For a developer building a multi-tenant app that needs to provision API keys per customer, the workflow cannot be fully automated from zero. The first key for any new account always requires a human with browser access.
 - Recommended fix: This is a known hard problem (the key-to-get-a-key bootstrap). Mitigations: (1) Service account tokens creatable via OAuth that can then generate API keys; (2) A CLI login flow (`firectl login`) that exchanges OAuth credentials for a session token usable for key creation. Fireworks actually has `firectl` — worth documenting this path more prominently as the agentic bootstrap solution.
-
----
 
 ---
 

@@ -34,19 +34,19 @@ teardown-all:
 	.venv/bin/python deploy/teardown_simplismart.py; .venv/bin/python deploy/teardown_fireworks.py
 
 dry-run:
-	python -m benchmark.runner --dry-run
+	.venv/bin/python -m benchmark.runner --dry-run
 
 benchmark-p0:
-	python -m benchmark.runner --platform both --priority p0
+	.venv/bin/python -m benchmark.runner --platform both --priority p0
 
 benchmark-all:
-	python -m benchmark.runner --platform both --priority all
+	.venv/bin/python -m benchmark.runner --platform both --priority all
 
 report:
-	python -m benchmark.report
+	.venv/bin/python -m benchmark.report
 
 test:
-	pytest tests/
+	.venv/bin/pytest tests/
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

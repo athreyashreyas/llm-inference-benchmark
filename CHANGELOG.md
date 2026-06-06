@@ -1,19 +1,45 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.0] — 2026-06-07 — Phase 3: Benchmark Results
 
-### Phase 3 — Benchmark Results
-- Benchmark results, charts, and final agentic log to be added after Phase 2 deployment
+### Added
+- `report/REPORT.md` — full benchmark results with analysis and summary table
+- `report/charts/` — 6 PNG charts: TTFT, TPOT, ITL, throughput, latency vs concurrency, p99 tail
+- `data/results/summary_72b46d09.csv` — committed summary CSV for P0 scenarios (6 scenarios, 90 requests per platform)
+- `benchmark/report.py` — chart and narrative generation from summary CSV
+
+### Results summary
+- Simplismart mean TTFT (warm, concurrency=1): 152 ms vs Fireworks 1,343 ms (8.3× faster)
+- TPOT equal on both platforms: ~4 ms (same GPU class, same model)
+- Simplismart output throughput at concurrency=1: 4–5× higher than Fireworks
+- Both platforms: 100% request success rate, 45 requests each (P0 scenarios)
 
 ---
 
-## [0.2.0] — Phase 2: Deployment (in progress)
+## [0.2.0] — 2026-06-06/07 — Phase 2: Deployment and Benchmarking
 
 ### Added
-- Real API credentials configured (not committed)
-- Verified model IDs on both platforms
-- Deployment notes populated in `deploy/simplismart_notes.md` and `deploy/fireworks_notes.md`
-- AGENTIC_LOG.md entries from deployment experience
+- `deploy/deploy_simplismart.py` — full compile-then-deploy script with idempotency, `--deploy-only` flag, COST CHECKPOINT, verbose error logging
+- `deploy/deploy_fireworks.py` — REST-based deployment script with H100 targeting, shape discovery fallback, COST CHECKPOINT
+- `deploy/teardown_simplismart.py` — deployment deletion via SDK, clears `.env` vars
+- `deploy/teardown_fireworks.py` — REST DELETE with `?ignoreChecks=true` to bypass recent-inference guard
+- `config/platforms.yaml` — added `extra_headers.id` for Simplismart dedicated deployment routing
+- `benchmark/runner.py` — updated `load_platform_config()` to handle nested dicts; `run_platform()` passes extra headers to AsyncOpenAI
+- `benchmark/metrics.py` — pricing updated for Gemma 3 4B Instruct on dedicated H100
+- Makefile targets: `deploy-simplismart-only`, `teardown-all`
+- `.env.example` — completed with all fields including `SIMPLISMART_MODEL_REPO_UUID`, `FIREWORKS_MODEL_ID`
+- AGENTIC_LOG.md — 5 Phase 2 entries documenting real deployment friction
+
+### Changed
+- Model: Qwen3 4B → Gemma 3 4B Instruct (`google/gemma-3-4b-it`) — Qwen3 4B unavailable on Simplismart marketplace; gemma-3-4b-it confirmed available on both platforms as H100 dedicated
+- GPU: A100 → H100 80GB — A100 has zero quota on Simplismart despite being listed as valid
+
+### Discovered friction points
+1. Simplismart `create_deployment()` returns 500 but silently creates the deployment — no ID in error response
+2. Simplismart inference requires non-standard `id: <deployment_uuid>` header — undocumented in quickstart
+3. Simplismart A100 has zero quota despite appearing in SDK enum
+4. Fireworks `deploymentShapeVersions` returns 404 for all accounts — shape discovery path unusable
+5. Fireworks H100 availability is model-dependent with no programmatic pre-check
 
 ---
 
@@ -32,7 +58,7 @@
 - `benchmark/runner.py` — async runner with streaming TTFT, concurrency control, cost guard, retry logic, dry-run flag
 - `benchmark/metrics.py` — aggregation (mean, p50, p95, p99), CSV persistence
 - `benchmark/prompts.py` — prompt loading and sampling utilities
-- `benchmark/report.py` — markdown table, 3 matplotlib charts, narrative summary
+- `benchmark/report.py` — markdown table, matplotlib charts, narrative summary
 - `tests/test_runner.py` — unit tests with zero real API calls
 - `requirements.txt` — Python dependencies
 - `Makefile` — targets: setup, dry-run, benchmark-p0, benchmark-all, report, test, clean
