@@ -17,8 +17,8 @@
 
 ## Model Verification
 
-- **Model searched for**: Qwen3 4B Instruct
-- **Exact model ID found in model library**: [fill in during Phase 2 — e.g., `accounts/fireworks/models/qwen3-4b`]
+- **Model searched for**: Gemma 3 4B Instruct
+- **Exact model ID found in model library**: `accounts/fireworks/models/gemma-3-4b-it`
 - **Location of model ID**: [e.g., Model Library > Model card > "API ID" field]
 - **Was model ID available via `GET /v1/models`?**: [ ] Yes / [ ] No
 - **Any ambiguity in model ID format**: [describe — e.g., instruction-tuned vs base variant naming]
@@ -67,8 +67,8 @@
 
 *(Actual images to be added to `report/screenshots/` manually)*
 
-- [ ] Model library page showing Qwen3 4B listing
-- [ ] Model detail page showing exact API model ID
+- [ ] Model library page showing Gemma 3 4B listing
+- [ ] Model detail page showing exact API model ID (`accounts/fireworks/models/gemma-3-4b-it`)
 - [ ] API key settings page (Dashboard)
 - [ ] First successful API response in terminal
 

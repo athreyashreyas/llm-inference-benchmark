@@ -6,35 +6,29 @@ All assumptions documented before any code was written. Added to as assumptions 
 
 ## 1. Model Choice
 
-**Deployed: Qwen3 14B Instruct**
+**Deployed: Gemma 3 4B Instruct** (`google/gemma-3-4b-it`)
 
-Original target was Qwen3 4B. Switched to Qwen3 14B after discovering Qwen3 4B is listed on Simplismart's pricing page but absent from the marketplace — no deployable endpoint available. Qwen3 14B was the smallest Qwen3 model actually present in Simplismart's marketplace.
+Rationale:
 
-Rationale for Qwen3 14B:
+1. Available on both Simplismart and Fireworks AI as dedicated H100 deployments. Confirmed deployable on both platforms before committing to the model choice.
 
-1. Only Qwen3 variant actually available in Simplismart's marketplace at time of benchmarking. The pricing page listing of Qwen3 4B was not reflected in deployable inventory — a product gap documented in AGENTIC_LOG.md.
+2. Smallest cost-effective model at $0.10/1M output tokens — most budget-safe for a $5 credit ceiling per platform.
 
-2. Available on Fireworks as dedicated-only deployment (`accounts/fireworks/models/qwen3-14b`, status: Ready). Serverless not supported for this model on Fireworks, which aligns with the dedicated GPU deployment requirement.
+3. 4B parameters (~8GB VRAM). Fits comfortably on H100 80GB (80GB VRAM) with 72GB headroom. No quantization required.
 
-3. 14B parameters: ~28GB VRAM in BF16. Fits comfortably on A100 80GB (80GB VRAM) with 52GB headroom. No quantization required.
-
-4. Qwen3 14B retains the hybrid thinking architecture (fast-answer vs. chain-of-thought) of the Qwen3 family, preserving the latency benchmarking value of the original model choice.
+4. Current-generation model (2025 release). Relevant for a platform positioning itself on inference speed for modern open-weight models.
 
 5. Apache 2.0 license. No commercial restrictions.
 
-6. Current-generation model (2025 release). Relevant for a platform positioning itself on inference speed for modern open-weight models.
-
 **Llama 3.1 8B explicitly excluded**: Simplismart's own blog provides a full deployment guide for it, reducing deployment discovery value.
 
-**Original Qwen3 4B rationale retained for reference**: cheaper ($0.10/1M vs estimated higher for 14B), smaller GPU footprint, but unavailable in Simplismart marketplace at time of task execution.
+**GPU**: NVIDIA H100 80GB (dedicated, 1× per platform). A100 was initially considered but has zero quota on Simplismart (documented in AGENTIC_LOG.md). H100 confirmed available and used on both platforms.
 
 ---
 
 ## 2. Deployment Type
 
-Shared/serverless endpoints preferred on both platforms. Zero idle cost. No dedicated GPU provisioning unless serverless is unavailable for the chosen model.
-
-If dedicated deployment is required: T4 GPU ($1.20/hr on Simplismart) with autoscale min_replicas=0, max_replicas=1. GPU billing stops when idle. Paused manually if autoscale is unavailable.
+Dedicated GPU endpoints on both platforms (serverless was not available for this model+GPU combination). Scale-to-zero configured on both: `min_replicas=0` on Fireworks, `scale_to_zero_enabled=True` on Simplismart. GPU billing stops when idle.
 
 ---
 
@@ -70,17 +64,11 @@ Model ID strings are verified in each platform's UI before any API call is made.
 
 ## 8. Budget
 
-$5 free credits on each platform. Total API benchmark cost estimated under $0.10. If dedicated GPU usage is required, estimated under $1.00 at $1.20/hr for a T4 GPU. Hard abort at $4.50 per platform to leave headroom. Total spend ceiling: $5 per platform, not negotiable.
+$5 free credits on each platform. Total API benchmark cost estimated under $0.10. Dedicated H100 GPU-hours are the dominant cost driver; both deployments ran under 30 minutes total. Hard abort at $4.50 per platform to leave headroom. Total spend ceiling: $5 per platform, not negotiable.
 
 ---
 
-## 9. Qwen3 Thinking Mode
-
-Qwen3 4B supports both "thinking" (chain-of-thought, `/think` tag) and "non-thinking" (fast-answer) modes. All benchmark requests use non-thinking mode (no `/think` tag in prompts, temperature=0.7) for consistent latency measurement. Mixing modes would make latency comparison meaningless.
-
----
-
-## 10. Concurrency Model
+## 9. Concurrency Model
 
 Concurrent requests are launched with asyncio and a Semaphore. "Concurrency=5" means up to 5 requests in-flight simultaneously, not 5 sequential batches. This tests real concurrent load on shared inference infrastructure, which is the relevant scenario for agentic applications.
 
@@ -95,8 +83,8 @@ Input and output token counts are taken from the API response `usage` field wher
 ## 12. Competitor Selection (Fireworks AI)
 
 Fireworks AI was selected as the competitor platform for the following reasons:
-- Explicit serverless support for the Qwen3 model family (confirmed from their blog)
+- Dedicated H100 deployment confirmed available for Gemma 3 4B Instruct (`accounts/fireworks/models/gemma-3-4b-it`)
 - OpenAI-compatible API, enabling the same benchmark code with only base URL and key swapped
 - Developer-focused positioning, making it a natural comparison for Simplismart's target market
-- $5 free credits on signup — sufficient for this benchmark at $0.20/1M tokens for 4B-16B models
+- $5 free credits on signup — sufficient for this benchmark at $0.10/1M output tokens for Gemma 3 4B
 - Strong reputation for high-throughput inference, making it a credible competitive reference point

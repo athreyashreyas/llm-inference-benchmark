@@ -169,9 +169,9 @@ class TestDryRun(unittest.TestCase):
         with patch.dict(os.environ, {
             "SIMPLISMART_API_KEY": "test_key",
             "SIMPLISMART_BASE_URL": "https://api.simplismart.ai/v1",
-            "SIMPLISMART_MODEL_ID": "qwen3-4b",
+            "SIMPLISMART_MODEL_ID": "gemma-3-4b-it",
             "FIREWORKS_API_KEY": "test_key",
-            "FIREWORKS_MODEL_ID": "accounts/fireworks/models/qwen3-4b",
+            "FIREWORKS_MODEL_ID": "accounts/fireworks/models/gemma-3-4b-it",
         }):
             from benchmark.runner import main
             asyncio.run(main(platform_filter="both", priority_filter="p0", dry_run=True))
@@ -186,9 +186,9 @@ class TestDryRun(unittest.TestCase):
         with patch.dict(os.environ, {
             "SIMPLISMART_API_KEY": "test_key",
             "SIMPLISMART_BASE_URL": "https://api.simplismart.ai/v1",
-            "SIMPLISMART_MODEL_ID": "qwen3-4b",
+            "SIMPLISMART_MODEL_ID": "gemma-3-4b-it",
             "FIREWORKS_API_KEY": "test_key",
-            "FIREWORKS_MODEL_ID": "accounts/fireworks/models/qwen3-4b",
+            "FIREWORKS_MODEL_ID": "accounts/fireworks/models/gemma-3-4b-it",
         }), patch("sys.stdout", captured):
             from benchmark.runner import main
             asyncio.run(main(platform_filter="simplismart", priority_filter="p0", dry_run=True))

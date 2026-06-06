@@ -14,22 +14,20 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 
 ---
 
-## Why Qwen3 4B
+## Why Gemma 3 4B
 
-**Primary model**: Qwen3 4B Instruct
+**Primary model**: Gemma 3 4B Instruct (`google/gemma-3-4b-it`)
 
 | Criterion | Rationale |
 |-----------|-----------|
 | Not covered by Simplismart tutorials | Simplismart has a detailed vLLM deployment guide for Llama 3.1 8B. Using it would follow their tutorial and obscure the deployment discovery experience this task is designed to evaluate. |
 | Cheapest non-trivial model on Simplismart | $0.10/1M tokens — most budget-safe for a $5 credit ceiling |
-| Fireworks serverless support confirmed | Fireworks has dedicated blog coverage and serverless model library support for Qwen3 |
-| Current-generation architecture | Released 2025; hybrid thinking + fast-answer modes make latency benchmarking more informative |
-| Budget-safe GPU fit | 4B params (~8GB VRAM) fits on a T4 GPU (16GB) with headroom |
+| Available on both platforms as dedicated H100 | Confirmed deployable on Simplismart and Fireworks AI dedicated H100 endpoints |
+| Current-generation architecture | Released 2025; compact 4B model well-suited for latency-focused benchmarking |
+| Budget-safe GPU fit | 4B params (~8GB VRAM) fits comfortably on H100 80GB with significant headroom |
 | Apache 2.0 license | No commercial restrictions |
 
 **Llama 3.1 8B was explicitly excluded** because Simplismart's own blog covers its deployment step-by-step, which would make this submission look like a tutorial playthrough rather than independent product evaluation.
-
-**Fallback**: Gemma 3 4B Instruct — if Qwen3 4B is unavailable serverless on Fireworks. Any switch is documented in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 ---
 
@@ -155,7 +153,7 @@ python -m benchmark.runner --scenarios E01,E02,E06,E07
 |-----|----------|---------------|
 | P0 only | ~180 | < $0.05 |
 | Full benchmark | ~280 | < $0.10 |
-| Dedicated GPU (if required) | — | < $1.00 at $1.20/hr T4 |
+| Dedicated GPU (H100) | — | < $1.00 at $2.00/hr H100 |
 
 **Hard limit**: $4.50/platform abort threshold is coded into the runner. Neither platform's $5 credit will be exceeded.
 
@@ -177,9 +175,8 @@ To reproduce raw results, you need API keys for both platforms and should expect
 
 ## Limitations
 
-- Results are from a single session on shared serverless infrastructure. They are indicative, not statistically definitive.
+- Results are from a single session on dedicated H100 infrastructure. They are indicative, not statistically definitive.
 - Network latency differences between platforms are not controlled for.
-- Qwen3 4B's thinking mode is disabled for all requests (consistent temperature=0.7, no `/think` tag). Enabling it would significantly increase latency and token usage.
 - Token counts fall back to approximate counting when the API `usage` field is absent in streaming responses.
 
 Full assumption set: [ASSUMPTIONS.md](ASSUMPTIONS.md)

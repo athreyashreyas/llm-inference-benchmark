@@ -17,8 +17,8 @@
 
 ## Model Verification
 
-- **Model searched for**: Qwen3 4B Instruct
-- **Exact model ID found in marketplace**: [fill in during Phase 2 — e.g., `qwen3-4b`]
+- **Model searched for**: Gemma 3 4B Instruct (`google/gemma-3-4b-it`)
+- **Exact model ID found in marketplace**: `google/gemma-3-4b-it` (HuggingFace ID used for compilation); inference model name is `gemma-it`
 - **Location of model ID**: [e.g., Marketplace > Model card > "API ID" field]
 - **Was model ID available in a `GET /models` API call?**: [ ] Yes / [ ] No
 - **Any ambiguity in model ID format**: [describe — e.g., multiple variants listed]
@@ -69,7 +69,7 @@
 
 *(Actual images to be added to `report/screenshots/` manually)*
 
-- [ ] Marketplace page showing Qwen3 4B model listing
+- [ ] Marketplace page showing Gemma 3 4B model listing (`google/gemma-3-4b-it`)
 - [ ] Model detail page showing exact API model ID
 - [ ] API key settings page
 - [ ] Deployment configuration page (if dedicated)
