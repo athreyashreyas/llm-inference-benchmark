@@ -31,7 +31,7 @@
 - AGENTIC_LOG.md — 5 Phase 2 entries documenting real deployment friction
 
 ### Changed
-- Model: Qwen3 4B → Gemma 3 4B Instruct (`google/gemma-3-4b-it`) — Qwen3 4B unavailable on Simplismart marketplace; gemma-3-4b-it confirmed available on both platforms as H100 dedicated
+- Model: Qwen3 4B → Qwen3 14B → Gemma 3 4B Instruct (`google/gemma-3-4b-it`) — Qwen3 4B was on Simplismart's pricing page but absent from its marketplace; the Qwen3 14B fallback then hit a 404 on Fireworks H100 (only H200 offered for that model); gemma-3-4b-it was the first model confirmed deployable with H100 on both platforms (full chain in AGENTIC_LOG.md)
 - GPU: A100 → H100 80GB — A100 has zero quota on Simplismart despite being listed as valid
 
 ### Discovered friction points

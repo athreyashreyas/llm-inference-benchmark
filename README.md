@@ -35,6 +35,22 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 
 ---
 
+## Why H100 (and not A100, L40S, or something cheaper)
+
+**GPU**: NVIDIA H100 80GB — dedicated, 1× per platform.
+
+H100 wasn't picked first on cost grounds — it's what survived two rounds of availability discovery that the model choice itself was entangled with (full story in [AGENTIC_LOG.md](AGENTIC_LOG.md)):
+
+| GPU | Why it's not what we ran on |
+|---|---|
+| **A100 80GB** | Listed as a valid `accelerator_type` in Simplismart's SDK enum and deployment UI — but compilation failed with `HTTP 400: "gpu a100: need 1 but only 0.0 available"`. The account had zero A100 quota despite the platform advertising it as selectable, with no way to discover that short of attempting the deploy. |
+| **L40S / L4 / T4 / other lower-tier cards** | Never reached evaluation. The *model* search itself had already turned into a two-platform compatibility hunt — Qwen3 4B was on Simplismart's pricing page but absent from its marketplace; the fallback Qwen3 14B was available on Simplismart but Fireworks only offers `NVIDIA_H200_141GB` for that model, not H100; Gemma 3 4B Instruct was the first model confirmed deployable on H100 on **both** platforms. Adding "and which of these also runs on a cheaper GPU on both platforms" would have meant repeating that same opaque discovery loop a third time, for a benchmark whose total inference-token spend came in under $0.01 either way. |
+| **H100 80GB** ✅ | The first accelerator that was *actually provisionable* (not just listed) for a model that was *actually deployable* on both Simplismart and Fireworks AI — the hard constraint for a same-model, same-GPU-class, head-to-head comparison. A 4B-parameter model needs roughly 8GB of the 80GB on offer, so GPU choice has effectively zero bearing on the latency/throughput numbers in this report — a cheaper card would move the cost line, not the comparison. The task brief itself named H100 at "$2–5/hr" as an acceptable, budget-safe baseline, removing any pressure to keep searching. |
+
+**The finding that matters more than the GPU pick itself**: on both platforms, the *advertised* set of valid GPUs (SDK enums, pricing pages, UI dropdowns) didn't match the *actually provisionable* set for this account and this model. Surfacing that mismatch — not optimizing for the cheapest card — is what actually determined the final H100-on-Gemma-3-4B configuration, and it's logged as a first-class friction point in [AGENTIC_LOG.md](AGENTIC_LOG.md).
+
+---
+
 ## Why Fireworks AI
 
 - **OpenAI-compatible API**: same benchmark code works for both platforms with only base URL + key swapped
@@ -50,6 +66,7 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 ```
 llm-inference-benchmark/
 ├── README.md               ← You are here — see "Reproduction Guide" below to run this yourself
+├── claude_code_instructions.md  ← The actual session-starting brief handed to Claude Code, verbatim
 ├── USAGE_OF_AI.md          ← How Claude Code was used throughout
 ├── ASSUMPTIONS.md          ← All assumptions documented before coding
 ├── AGENTIC_LOG.md          ← The primary PM output: real-time friction log
@@ -237,7 +254,7 @@ Full assumption set: [ASSUMPTIONS.md](ASSUMPTIONS.md)
 
 ## How AI Was Used
 
-Claude Code (the Anthropic CLI agent) was used for the entire project — repo scaffolding, module implementation, test writing, report generation, and documentation. See [USAGE_OF_AI.md](USAGE_OF_AI.md) for the full task-by-task log.
+Claude Code (the Anthropic CLI agent) was used for the entire project — repo scaffolding, module implementation, test writing, report generation, and documentation. See [USAGE_OF_AI.md](USAGE_OF_AI.md) for the full task-by-task log, and [claude_code_instructions.md](claude_code_instructions.md) for the actual session-starting brief — including notes on where the original plan (Qwen3 4B, T4 GPU, serverless-first) diverged from what the platforms actually supported.
 
 The agentic-first approach is itself a product observation: using an AI coding agent to attempt full programmatic deployment surfaces exactly the friction points that matter for developer experience on these platforms.
 

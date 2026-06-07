@@ -2,6 +2,8 @@
 
 This document records every significant task delegated to Claude Code throughout this project. Updated after each completed task. The agentic-first approach is a core requirement of this task — this file is evidence of that approach.
 
+The session began with a single comprehensive brief — [claude_code_instructions.md](claude_code_instructions.md) — handed to Claude Code before any file in this repo existed. It's reproduced there verbatim (evaluator name redacted) along with notes on where reality later diverged from the plan (model fallback chain, GPU choice, deployment type). It's worth reading first: the PM rationale that runs through `ASSUMPTIONS.md` and `README.md` was specified there, by the candidate, before a single line of code was written — the timeline below is the record of the agent executing against it.
+
 ---
 
 ## Log
@@ -10,7 +12,7 @@ This document records every significant task delegated to Claude Code throughout
 
 | # | Task | What was prompted | Output quality | What I reviewed or changed |
 |---|------|------------------|----------------|---------------------------|
-| 1 | Read and interpret task spec | Provided `claude_code_instructions.md` and `apm-hiring-task.pdf`; asked agent to read both and start Phase 1 | Excellent — agent identified phase structure and produced correct file ordering | Confirmed phase structure matched spec |
+| 1 | Read and interpret task spec | Provided [claude_code_instructions.md](claude_code_instructions.md) and `apm-hiring-task.pdf`; asked agent to read both and start Phase 1 | Excellent — agent identified phase structure and produced correct file ordering | Confirmed phase structure matched spec |
 | 2 | Create ASSUMPTIONS.md | Agent scaffolded all 12 assumption entries from the spec, including model rationale, deployment strategy, budget constraints, and competitor selection reasoning | High quality — all required entries present, PM framing applied | Reviewed for completeness against spec checklist |
 | 3 | Create AGENTIC_LOG.md | Agent initialised the log with format reference and a session bootstrap entry framed as a product observation | Good — correct format, appropriate first entry | Verified entry includes all 7 required fields |
 | 4 | Create USAGE_OF_AI.md | Agent created this file | Meta-recursive — agent is documenting itself | Verified format matches spec |
