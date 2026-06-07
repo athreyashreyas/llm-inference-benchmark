@@ -84,6 +84,18 @@ This log captures every friction point encountered while attempting to deploy an
 
 ---
 
+## Fireworks AI — Dedicated GPU deployment requires a payment method on file, with no actionable error
+
+- Stage: deploy
+- What happened: The account had its full $5 free-credit balance available, but attempting to provision a *dedicated* GPU endpoint (the only deployment option for Gemma 3 4B — see "Why Fireworks AI" in README) failed partway through provisioning. The blocker was not insufficient credits — it was the absence of a payment method on file. Fireworks gates dedicated/H100 deployment behind having a card registered (Dashboard → Billing), separately from the free-credit balance. Adding a card resolved it immediately; the deploy script then succeeded on the next run with no code changes.
+- Agent impact: No — there is no error message, response field, or doc page that says "add a payment method to provision dedicated endpoints." The failure surfaces as an opaque platform-side rejection during provisioning, indistinguishable from a transient infrastructure issue. Recovering required a human to reason "we have credits, so why is this failing?" and check Billing settings manually — the agent could not have self-diagnosed or self-resolved this from the API response alone.
+- Severity: 3
+- Evidence: `make deploy-fireworks` failed during the provisioning step with no specific guidance; the deployment never reached a queryable state. After adding a payment method via Dashboard → Billing (a manual UI step), an identical script invocation succeeded and reached `READY` in ~130 seconds.
+- Product impact: A developer (or agent) following the documented free-credit onboarding path will hit a hard wall the moment they need a dedicated GPU — which, for any model without a serverless option (like Gemma 3 4B here), is immediately. The $5 free-credit promise implies "you can deploy and test for free," but in practice dedicated deployment is gated behind a financial-verification step that isn't mentioned anywhere in the deployment flow, the pricing page, or the error response. This directly contradicts the "try before you pay" framing of the free-credit offer.
+- Recommended fix: (1) Surface a specific, actionable error: "Dedicated GPU deployments require a payment method on file. Add one at [billing URL]." (2) State this requirement explicitly wherever dedicated deployment is documented or estimated (pricing page, deployment creation docs, `POST /deployments` reference). (3) Ideally, expose it as a pre-flight check — e.g., a `GET /v1/accounts/{id}/billing/status` field an agent could query before attempting provisioning, rather than discovering it via a failed deployment.
+
+---
+
 ## Simplismart — Two different base URLs for two different API surfaces, not explained anywhere
 
 - Stage: documentation

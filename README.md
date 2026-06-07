@@ -107,6 +107,8 @@ llm-inference-benchmark/
 
 Step-by-step instructions to set up the project and reproduce the benchmark runs and reports from scratch.
 
+> **Time estimates**: Compile/deploy timings below come straight from real measurements logged in [deploy/simplismart_notes.md](deploy/simplismart_notes.md) and [deploy/fireworks_notes.md](deploy/fireworks_notes.md). Benchmark/report/teardown timings are approximate — derived from request counts and observed per-request latencies in [report/REPORT.md](report/REPORT.md), not separately logged wall-clock runs. Treat them as planning guidance, not guarantees.
+
 ### Setup
 
 **Prerequisites**: Python 3.11+
@@ -116,7 +118,7 @@ Step-by-step instructions to set up the project and reproduce the benchmark runs
 git clone <repo-url>
 cd llm-inference-benchmark
 
-# 2. Create virtual environment and install dependencies
+# 2. Create virtual environment and install dependencies (~1-3 min, mostly pip download time)
 make setup
 
 # 3. Copy env template and fill in your API keys
@@ -127,25 +129,35 @@ cp .env.example .env
 # 4. Activate the venv
 source .venv/bin/activate
 
-# 5. Validate config and preview the scenario plan — no API calls, no deployments
+# 5. Validate config and preview the scenario plan — no API calls, no deployments (instant, < 5s)
 make dry-run
 ```
 
-> `make dry-run` only checks that `.env`/config are complete and prints which scenarios *would* run. It does not create any deployment or spend any money — that's a separate, explicit step below.
+> `make dry-run` only checks that `.env`/config are complete and prints which scenarios *would* run. It does not create any deployment or spend any money — that's a separate, explicit step below. On a fresh clone (before deployment), it will print warnings for `SIMPLISMART_BASE_URL` and `FIREWORKS_MODEL_ID` — these are expected; both fields are filled in automatically by the deploy scripts in the next step, not by you.
 
 ### Deploy
 
 Both platforms require a **dedicated GPU endpoint** for this model (no serverless option for Gemma 3 4B). Each deploy script prints a `COST CHECKPOINT` summary (pricing, GPU, budget) and waits for you to type `yes` before it provisions anything billable.
 
-```bash
-# Simplismart: compiles the model from HuggingFace, then deploys it (≈15 min first time)
-make deploy-simplismart
-# (subsequent runs can skip recompilation with: make deploy-simplismart-only)
+> **Fireworks prerequisite — add a payment method before deploying.** The $5 free-credit balance is *not* sufficient to provision a dedicated GPU endpoint — Fireworks gates dedicated/H100 deployment behind having a card on file, separately from the credit balance. Skip this and `make deploy-fireworks` will fail partway through provisioning with no clear, actionable error (it looks like a transient platform issue, not a billing gate). Do this first, before running any Fireworks deploy command:
+> 1. Log into [fireworks.ai](https://fireworks.ai) and open the **Dashboard**
+> 2. Navigate to **Settings → Billing** (or the **Billing** section directly, depending on account type)
+> 3. Click **Add payment method** and enter your card details in the payment form
+> 4. Confirm the card is saved and showing as the active payment method before proceeding to `make deploy-fireworks`
+>
+> Simplismart had no equivalent gate for this model+GPU combination — see [AGENTIC_LOG.md](AGENTIC_LOG.md) entry "Fireworks AI — Dedicated GPU deployment requires a payment method on file, with no actionable error" for the full friction writeup.
 
-# Fireworks: deploys directly via REST (≈2 min, no compile step)
+```bash
+# Simplismart: compiles the model from HuggingFace, then deploys it
+# ~18 min total on a fresh compile (~15 min compile + ~3 min deploy-to-healthy)
+make deploy-simplismart
+# subsequent runs skip recompilation — ~3 min: make deploy-simplismart-only
+
+# Fireworks: deploys directly via REST, no compile step — ~2-3 min (~130s provisioning + health poll)
+# Requires a payment method on file — see prerequisite note above
 make deploy-fireworks
 
-# Or run both sequentially in one command
+# Or run both sequentially — ~20 min on a fresh Simplismart compile, ~5 min if that compile is cached
 make deploy-all
 ```
 
@@ -155,15 +167,17 @@ Each script polls until the endpoint is healthy, then writes the resulting deplo
 
 ```bash
 # P0 scenarios only (90 requests across both platforms, ~$0.0007 actual token cost)
+# ~5-10 min wall-clock across both platforms (sequential: Simplismart, then Fireworks)
 make benchmark-p0
 
 # All scenarios — P0 + P1 (130 requests across both platforms, ~$0.0017 actual token cost)
+# ~10-20 min wall-clock — P1 adds higher-concurrency, longer-generation scenarios
 make benchmark-all
 
-# Generate comparison table and charts after benchmarking
+# Generate comparison table and charts after benchmarking — ~10-30s (reads pre-aggregated CSVs, no API calls)
 make report
 
-# Run tests
+# Run tests — ~5-10s (all mocked, zero real API calls)
 make test
 ```
 
@@ -181,11 +195,13 @@ python -m benchmark.runner --scenarios E01,E02,E06,E07
 **Do this immediately after benchmarking** — dedicated GPU endpoints bill per hour, not per token, so leaving them up is the real cost driver (see [Estimated Costs](#estimated-costs)).
 
 ```bash
-make teardown-all
-# or individually:
+make teardown-all          # ~1-2 min total — DELETE calls plus a short poll until both report stopped
+# or individually (~30-60s each):
 make teardown-simplismart
 make teardown-fireworks
 ```
+
+`make clean` (remove `__pycache__` and runtime artifacts) is local filesystem cleanup — instant, no API calls.
 
 ---
 

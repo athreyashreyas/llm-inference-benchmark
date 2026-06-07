@@ -12,6 +12,12 @@
 - **Time to obtain API key from signup**: ~2 minutes (no email verification required beyond OAuth)
 - **Was key generation programmable via API?**: [x] No for the first key — the bootstrap key must be created via Dashboard UI. The API does expose a `POST /v1/accounts/{id}/users/{id}/apiKeys` endpoint, but it requires Bearer auth with an existing key. Cross-reference: AGENTIC_LOG.md entry "Fireworks AI — API key creation requires existing credentials."
 - **Scoping options on API key**: Full-access keys visible in Dashboard; no read-only or per-model scoping in the standard UI.
+- **Payment method requirement (blocking)**: The $5 free-credit balance covers serverless/light usage but is **not** sufficient to provision a *dedicated* GPU endpoint — Fireworks gates dedicated/H100 deployment behind having a card on file (Dashboard → Billing). There is no clear, actionable error surfaced for this; the deploy attempt simply fails partway through provisioning rather than returning something like "add a payment method to deploy dedicated endpoints." A payment method had to be added *before* `deploy_fireworks.py` could succeed. Cross-reference: AGENTIC_LOG.md entry "Fireworks AI — Dedicated GPU deployment requires a payment method on file, with no actionable error."
+- **Steps to add a payment method (do this before any dedicated-deployment attempt)**:
+  1. Log into the Fireworks Dashboard at fireworks.ai
+  2. Navigate to Settings → Billing (or the Billing section directly)
+  3. Click "Add payment method" and enter card details in the payment form
+  4. Confirm the card shows as the active payment method, then re-run the deploy script — it succeeds immediately with no code changes once this is in place
 
 ---
 
@@ -60,6 +66,7 @@ curl https://api.fireworks.ai/inference/v1/chat/completions \
 *(Cross-reference each item to an AGENTIC_LOG.md entry)*
 
 - [x] Signup required UI steps not automatable — first API key must come from Dashboard browser session — AGENTIC_LOG.md entry "Fireworks AI — API key creation requires existing credentials"
+- [x] Dedicated GPU deployment silently requires a payment method on file (separate from free-credit balance), surfaced as an opaque provisioning failure with no actionable error — AGENTIC_LOG.md entry "Fireworks AI — Dedicated GPU deployment requires a payment method on file, with no actionable error"
 - [x] `deploymentShapeVersions` endpoint 404 — documented deployment shape path unusable — AGENTIC_LOG.md entry "Fireworks AI — `deploymentShapeVersions` endpoint returns 404"
 - [x] H100 availability is model-dependent with no programmatic pre-check — AGENTIC_LOG.md entry "Fireworks AI — H100 returns 404 for some models but not others"
 - [x] Teardown DELETE blocked without `?ignoreChecks=true` — not documented
@@ -98,8 +105,9 @@ curl https://api.fireworks.ai/inference/v1/chat/completions \
 
 - **Overall deployment experience (1–5)**: 4/5
 - **Key friction points**:
-  1. `deploymentShapeVersions` endpoint is documented but returns 404 — the recommended deployment path is a dead end; must fall back to `acceleratorType` and hope the GPU is available
-  2. H100 availability is model-dependent and not discoverable programmatically — requires trial and error or UI inspection
-  3. DELETE blocked without `?ignoreChecks=true` — teardown fails silently without this undocumented param
+  1. Dedicated GPU deployment silently requires a payment method on file — the $5 free-credit balance alone is not enough, and the failure surfaces as an opaque provisioning error rather than "add a payment method"
+  2. `deploymentShapeVersions` endpoint is documented but returns 404 — the recommended deployment path is a dead end; must fall back to `acceleratorType` and hope the GPU is available
+  3. H100 availability is model-dependent and not discoverable programmatically — requires trial and error or UI inspection
+  4. DELETE blocked without `?ignoreChecks=true` — teardown fails silently without this undocumented param
 - **What worked well**: Fast deployment (130s vs 15 min compile on Simplismart); standard OpenAI-compatible inference with no custom headers; machine-readable model list via GET /models; clear deployment status polling response with `replicaStats` breakdown
 - **Time to first token from signup**: ~10 minutes
