@@ -4,6 +4,8 @@ A benchmark comparing the inference performance and agentic developer experience
 
 The primary output of this project is not the performance numbers — it is the agentic UX analysis captured in [AGENTIC_LOG.md](AGENTIC_LOG.md): a real-time record of every friction point encountered while attempting to deploy and benchmark both platforms entirely programmatically.
 
+**Want to run this yourself?** Jump straight to the [Reproduction Guide](#reproduction-guide) for step-by-step setup and benchmark-run instructions.
+
 ---
 
 ## What This Project Is
@@ -34,7 +36,7 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 ## Why Fireworks AI
 
 - **OpenAI-compatible API**: same benchmark code works for both platforms with only base URL + key swapped
-- **Serverless-first architecture**: no GPU provisioning required; scale-to-zero built in
+- **Serverless-first architecture**: no GPU provisioning required; scale-to-zero built in; similar to Simplismart's marketplace vs dedicated endpoint option
 - **Developer-focused positioning**: directly comparable target market to Simplismart
 - **$5 free credits**: sufficient for this benchmark at ~$0.20/1M tokens (4B–16B models)
 - **Strong inference throughput reputation**: credible competitive reference point
@@ -45,7 +47,7 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 
 ```
 llm-inference-benchmark/
-├── README.md
+├── README.md               ← You are here — see "Reproduction Guide" below to run this yourself
 ├── USAGE_OF_AI.md          ← How Claude Code was used throughout
 ├── ASSUMPTIONS.md          ← All assumptions documented before coding
 ├── AGENTIC_LOG.md          ← The primary PM output: real-time friction log
@@ -66,18 +68,27 @@ llm-inference-benchmark/
 │   ├── prompts.json        ← 30 benchmark prompts
 │   └── results/            ← Raw and summary CSVs (gitignored raw)
 ├── report/
+│   ├── REPORT.md           ← Full benchmark report: results, analysis, validation
 │   ├── charts/             ← Generated PNG charts
 │   └── screenshots/        ← Manual screenshots from platform UIs
 ├── tests/
 │   └── test_runner.py      ← Unit tests (zero real API calls)
 └── deploy/
+    ├── deploy_simplismart.py    ← Compile + deploy via Simplismart SDK
+    ├── deploy_fireworks.py      ← Deploy via Fireworks REST API
+    ├── teardown_simplismart.py  ← Tear down Simplismart deployment
+    ├── teardown_fireworks.py    ← Tear down Fireworks deployment
     ├── simplismart_notes.md
     └── fireworks_notes.md
 ```
 
 ---
 
-## Setup
+## Reproduction Guide
+
+Step-by-step instructions to set up the project and reproduce the benchmark runs and reports from scratch.
+
+### Setup
 
 **Prerequisites**: Python 3.11+
 
@@ -101,9 +112,7 @@ source .venv/bin/activate
 make dry-run
 ```
 
----
-
-## Running the Benchmark
+### Running the Benchmark
 
 ```bash
 # P0 scenarios only (~180 requests, ~$0.05 estimated)
@@ -169,7 +178,7 @@ python -m benchmark.runner --scenarios E01,E02,E06,E07
 | `report/charts/*.png` | Yes (after Phase 3) | No — read pre-committed CSVs |
 | `deploy/` notes | Yes | No — observational |
 
-To reproduce raw results, you need API keys for both platforms and should expect minor variation due to shared infrastructure and network conditions.
+To reproduce raw results, you need API keys for both platforms and should expect minor variation due to shared infrastructure and network conditions — see the [Reproduction Guide](#reproduction-guide) above for the exact steps.
 
 ---
 
