@@ -118,7 +118,9 @@ def _grouped_bar(df: pd.DataFrame, metric: str, ylabel: str, title: str, out_pat
         pdata = df[df["platform"] == platform].set_index("scenario_id")
         vals = [pdata.loc[s, metric] if s in pdata.index else float("nan") for s in scenarios]
         offset = (i - len(platforms) / 2 + 0.5) * width
-        ax.bar([xi + offset for xi in x], vals, width, label=platform)
+        bars = ax.bar([xi + offset for xi in x], vals, width, label=platform)
+        ax.bar_label(bars, labels=[f"{v:.3f}" if v == v else "" for v in vals],
+                     fontsize=7, padding=2)
 
     ax.set_xticks(list(x))
     ax.set_xticklabels(scenarios)
