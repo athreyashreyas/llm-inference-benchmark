@@ -163,7 +163,7 @@ def poll_health(client, deployment_id: str, model_endpoint: str) -> None:
             if health_status == "Healthy":
                 detail = client.get_model_deployment(deployment_id=deployment_id)
                 endpoint = detail.get("model_endpoint") or detail.get("endpoint") or model_endpoint
-                if endpoint and not endpoint.startswith("http"):
+                if endpoint and not endpoint.startswith(("http://", "https://")):
                     endpoint = f"https://{endpoint}"
                 if not endpoint:
                     endpoint = "https://api.simplismart.live"
