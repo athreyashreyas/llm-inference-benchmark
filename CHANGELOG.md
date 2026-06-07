@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.1] — 2026-06-08 — Consistency pass: align repo to submitted report
+
+### Changed
+- `README.md` — rewrote "Estimated Costs": removed the est.→actual token-spend tables and sub-cent figures (`~$0.0007`, `~$0.0017`); replaced with authoritative per-token pricing ($0.10/M Simplismart vs $0.20/M Fireworks) and total task spend (≈$1.73 vs ≈$1.70); kept GPU-hour cost table and the $4.50/platform abort guard
+- `report/REPORT.md` — Cost section rewritten to state per-token pricing and total spend explicitly, and to explain why a 2× per-token gap coexists with near-equal totals (GPU-hours dominate, token spend negligible); removed the unsupported "~13,000 tokens / ~$0.0026" claim
+- `report/REPORT.md` — Summary table: "Cost per token — Tie — $0.10/M on both" → "Cost per M tokens — Simplismart — $0.10 vs $0.20 — 2× cheaper"
+- `report/REPORT.md` — corrected stale request-count references ("280 total requests, 130 per platform" → "130 total, 65 per platform"; "130 requests/platform" → "65 requests/platform") to match the experiment matrix and `data/results/summary_ba442d8d.csv`
+- Standardized the cold-start multiple to "~9×" (was "~6–9×") in the Summary table
+
+---
+
 ## [0.3.0] — 2026-06-07 — Phase 3: Benchmark Results
 
 ### Added

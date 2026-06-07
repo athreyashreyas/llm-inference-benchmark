@@ -166,11 +166,11 @@ Each script polls until the endpoint is healthy, then writes the resulting deplo
 ### Running the Benchmark
 
 ```bash
-# P0 scenarios only (90 requests across both platforms, ~$0.0007 actual token cost)
+# P0 scenarios only (90 requests across both platforms)
 # ~5-10 min wall-clock across both platforms (sequential: Simplismart, then Fireworks)
 make benchmark-p0
 
-# All scenarios — P0 + P1 (130 requests across both platforms, ~$0.0017 actual token cost)
+# All scenarios — P0 + P1 (130 requests across both platforms)
 # ~10-20 min wall-clock — P1 adds higher-concurrency, longer-generation scenarios
 make benchmark-all
 
@@ -224,21 +224,14 @@ make teardown-fireworks
 
 ## Estimated Costs
 
-Pre-run estimates (used to size the cost-guard thresholds in `benchmark/runner.py`) versus what the committed runs actually spent:
-
-| Run | Requests (est. → actual) | Token cost (est. ceiling → actual) |
-|-----|---|---|
-| P0 only (`72b46d09`) | ~180 → 90 (45/platform) | < $0.05 → ~$0.0007 |
-| Full benchmark, P0+P1 (`ba442d8d`) | ~280 → 130 (65/platform) | < $0.10 → ~$0.0017 |
-
-The original request-count estimates assumed roughly double the reps actually configured in the experiment matrix — the cost ceilings were set generously on top of that, so actual spend on inference tokens came in **far** below budget on both runs (well under a cent total).
+Per-token pricing: **Simplismart $0.10/M output tokens** vs **Fireworks $0.20/M output tokens** for Gemma 3 4B — Fireworks is 2× more expensive per token. Token spend, however, was negligible at this scale; the dominant cost driver for dedicated H100 endpoints is GPU-hours, not token volume.
 
 | GPU cost (dedicated H100, per platform) | Estimate | Actual |
 |---|---|---|
 | Hourly rate | ~$2.00/hr | Simplismart ~$1.99/hr · Fireworks ~$2.40/hr |
 | Session cost | < $1.00 (assumes < 30 min active) | Each deployment was up for well under 30 minutes (deploy → benchmark → `make teardown-all`), so actual GPU spend stayed under $1/platform per run |
 
-**Bottom line: the estimates were correct as conservative ceilings** — actual spend (tokens + GPU time, both runs combined) was a small fraction of the $5/platform credit limit. See [Run-to-Run Validation](report/REPORT.md#run-to-run-validation) in the report for the full cost accounting per scenario.
+**Bottom line:** total spend across the entire task came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal despite the 2× per-token price gap, because GPU-hours (not token volume) dominate the bill on dedicated endpoints. Both totals are comfortably inside the $5/platform credit limit. See [Run-to-Run Validation](report/REPORT.md#run-to-run-validation) in the report for the full per-scenario accounting.
 
 **Hard limit**: $4.50/platform abort threshold is coded into the runner. Neither platform's $5 credit will be exceeded.
 

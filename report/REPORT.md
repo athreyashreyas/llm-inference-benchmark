@@ -68,7 +68,7 @@ Each scenario ran 3 warm-up requests (discarded) before the measured reps. A col
 | Fireworks AI | E09 | 5 | 1266.98 | 1264.75 | 1847.08 | 1871.32 | 4.77 | 4.80 | 1966.26 | 2590.35 |
 | Fireworks AI | E10 | 10 | 1124.46 | 969.04 | 1681.64 | 1708.32 | 5.14 | 5.15 | 2146.53 | 2687.19 |
 
-Both platforms returned a 100% success rate across all 10 scenarios (280 total requests, 130 per platform).
+Both platforms returned a 100% success rate across all 10 scenarios (130 total requests, 65 per platform).
 
 ---
 
@@ -104,7 +104,7 @@ Simplismart cold start: **503 ms**. Fireworks cold start: **4,349 ms**. Both end
 
 ### Cost
 
-Both platforms priced at $0.10/M output tokens for Gemma 3 4B. The full 10-scenario run consumed under 13,000 total output tokens across both platforms — combined estimated spend of ~$0.0026, well inside the $5/platform budget ceiling. The dominant cost driver for dedicated H100 endpoints remains GPU-hours, not token volume; both deployments were active for well under an hour total (deploy → benchmark → teardown) and were torn down immediately after this run completed.
+Simplismart prices Gemma 3 4B at **$0.10/M output tokens**, while Fireworks prices it at **$0.20/M** — Fireworks is 2× more expensive per token. Yet total spend across the task came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal. The 2× per-token gap and the near-equal totals are not in tension: token spend was negligible (a tiny fraction of a dollar either way) at this benchmark's volume, so it has essentially no bearing on the bottom line. The dominant cost driver for dedicated H100 endpoints is GPU-hours, not token volume; both deployments were active for well under an hour total (deploy → benchmark → teardown) and were torn down immediately after this run completed, which is what actually determined the near-equal totals.
 
 ![p99 Tail Latency](charts/p99_comparison.png)
 
@@ -158,16 +158,16 @@ This validation gives confidence that the P0 conclusions in this report (Simplis
 | Output throughput (conc=1) | **Simplismart** | 3–4× higher |
 | Output throughput (conc=5) | **Simplismart** | ~1.2–1.5× higher |
 | Output throughput (conc=10, long gen) | **Fireworks** | 740 vs 488 tok/s — only scenario Fireworks leads |
-| Cold start | **Simplismart** | ~6–9× faster and far more consistent run-to-run |
+| Cold start | **Simplismart** | ~9× faster and far more consistent run-to-run |
 | Deployment speed | **Fireworks** | 130s vs ~15 min (compile required, though reusable) |
-| Cost per token | Tie | $0.10/M output tokens on both |
+| Cost per M tokens | **Simplismart** | $0.10 vs $0.20 — 2× cheaper |
 | Reliability | Tie | 100% success across all 10 scenarios, both platforms, both runs |
 
 **Simplismart is the better choice for latency-sensitive, low-to-medium concurrency workloads** — chatbots, copilots, interactive applications — where TTFT directly impacts perceived responsiveness, and where its faster, more predictable cold start matters for intermittent traffic.
 
 **Fireworks becomes competitive — and at the highest concurrency with long generations, actually wins on raw throughput** (E10: 740 vs 488 tok/s). Combined with its much faster deployment path (no compilation step) and full OpenAI compatibility (no custom headers), Fireworks is the stronger pick for batch or sustained high-throughput workloads where TTFT matters less than aggregate tokens-per-second, and for teams that want to iterate on deployments quickly.
 
-Both platforms delivered 100% request success rates across all scenarios in both benchmark runs (280 total requests).
+Both platforms delivered 100% request success rates across all scenarios in both benchmark runs (130 total requests in this run, plus 90 in the earlier P0-only validation run).
 
 ---
 
@@ -179,6 +179,6 @@ Both platforms delivered 100% request success rates across all scenarios in both
 - ITL: mean of observed inter-chunk gaps from streaming timestamps
 - Cold start probe: single request before warm scenarios, result reported separately and not included in scenario percentiles
 - Warm-up requests: 3 per scenario, discarded from metrics
-- This run (`ba442d8d`) covers the full P0 + P1 scenario set (E01–E10, 130 requests/platform). The P0 subset (E01/E02/E03/E06/E07/E08) was independently re-validated against an earlier run (`72b46d09`, P0-only, separate deployment) — see [Run-to-Run Validation](#run-to-run-validation)
+- This run (`ba442d8d`) covers the full P0 + P1 scenario set (E01–E10, 65 requests/platform). The P0 subset (E01/E02/E03/E06/E07/E08) was independently re-validated against an earlier run (`72b46d09`, P0-only, separate deployment) — see [Run-to-Run Validation](#run-to-run-validation)
 - Raw data: `data/results/simplismart_ba442d8d_raw.csv`, `data/results/fireworks_ba442d8d_raw.csv` (and `*_72b46d09_raw.csv` for the validation run)
 - Summary data: `data/results/summary_ba442d8d.csv` (and `summary_72b46d09.csv` for the validation run)
