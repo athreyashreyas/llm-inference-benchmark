@@ -3,8 +3,10 @@
 from __future__ import annotations
 import os, sys
 import requests
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
+from pathlib import Path
 load_dotenv()
+ENV_PATH = Path(__file__).parent.parent / ".env"
 
 def main() -> None:
     account_id    = os.environ["FIREWORKS_ACCOUNT_ID"]
@@ -23,6 +25,8 @@ def main() -> None:
     print(f"[Fireworks] DELETE → {resp.status_code}: {resp.text[:200]}")
     if resp.status_code in (200, 204):
         print("[Fireworks] Deployment deleted. GPU billing stopped.")
+        set_key(str(ENV_PATH), "FIREWORKS_DEPLOYMENT_ID", "")
+        set_key(str(ENV_PATH), "FIREWORKS_MODEL_ID", "")
     else:
         print("[Fireworks] Delete may have failed — check Fireworks dashboard.")
 
