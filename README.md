@@ -4,6 +4,8 @@ A benchmark comparing the inference performance and agentic developer experience
 
 The primary output of this project is not the performance numbers — it is the agentic UX analysis captured in [AGENTIC_LOG.md](AGENTIC_LOG.md): a real-time record of every friction point encountered while attempting to deploy and benchmark both platforms entirely programmatically.
 
+**Results:** the full write-up — tables, charts, analysis, and a run-to-run validation against an independent redeployment — is in [report/REPORT.md](report/REPORT.md) (run ID `ba442d8d`, all 10 scenarios E01–E10, validated against baseline run `72b46d09`).
+
 **Want to run this yourself?** Jump straight to the [Reproduction Guide](#reproduction-guide) for step-by-step setup and benchmark-run instructions.
 
 ---
@@ -108,17 +110,37 @@ cp .env.example .env
 # 4. Activate the venv
 source .venv/bin/activate
 
-# 5. Validate config without making any API calls
+# 5. Validate config and preview the scenario plan — no API calls, no deployments
 make dry-run
 ```
+
+> `make dry-run` only checks that `.env`/config are complete and prints which scenarios *would* run. It does not create any deployment or spend any money — that's a separate, explicit step below.
+
+### Deploy
+
+Both platforms require a **dedicated GPU endpoint** for this model (no serverless option for Gemma 3 4B). Each deploy script prints a `COST CHECKPOINT` summary (pricing, GPU, budget) and waits for you to type `yes` before it provisions anything billable.
+
+```bash
+# Simplismart: compiles the model from HuggingFace, then deploys it (≈15 min first time)
+make deploy-simplismart
+# (subsequent runs can skip recompilation with: make deploy-simplismart-only)
+
+# Fireworks: deploys directly via REST (≈2 min, no compile step)
+make deploy-fireworks
+
+# Or run both sequentially in one command
+make deploy-all
+```
+
+Each script polls until the endpoint is healthy, then writes the resulting deployment IDs and inference URLs into `.env` automatically (the fields under "FILLED AUTOMATICALLY after deployment" in `.env.example`). Only once both deployments are healthy should you proceed to the benchmark step below.
 
 ### Running the Benchmark
 
 ```bash
-# P0 scenarios only (~180 requests, ~$0.05 estimated)
+# P0 scenarios only (90 requests across both platforms, ~$0.0007 actual token cost)
 make benchmark-p0
 
-# All scenarios (~280 requests, ~$0.10 estimated)
+# All scenarios — P0 + P1 (130 requests across both platforms, ~$0.0017 actual token cost)
 make benchmark-all
 
 # Generate comparison table and charts after benchmarking
@@ -135,6 +157,17 @@ python -m benchmark.runner --dry-run
 python -m benchmark.runner --platform simplismart --priority p0
 python -m benchmark.runner --platform fireworks --priority all
 python -m benchmark.runner --scenarios E01,E02,E06,E07
+```
+
+### Tear Down
+
+**Do this immediately after benchmarking** — dedicated GPU endpoints bill per hour, not per token, so leaving them up is the real cost driver (see [Estimated Costs](#estimated-costs)).
+
+```bash
+make teardown-all
+# or individually:
+make teardown-simplismart
+make teardown-fireworks
 ```
 
 ---
@@ -158,11 +191,21 @@ python -m benchmark.runner --scenarios E01,E02,E06,E07
 
 ## Estimated Costs
 
-| Run | Requests | Estimated cost |
-|-----|----------|---------------|
-| P0 only | ~180 | < $0.05 |
-| Full benchmark | ~280 | < $0.10 |
-| Dedicated GPU (H100) | — | < $1.00 at $2.00/hr H100 |
+Pre-run estimates (used to size the cost-guard thresholds in `benchmark/runner.py`) versus what the committed runs actually spent:
+
+| Run | Requests (est. → actual) | Token cost (est. ceiling → actual) |
+|-----|---|---|
+| P0 only (`72b46d09`) | ~180 → 90 (45/platform) | < $0.05 → ~$0.0007 |
+| Full benchmark, P0+P1 (`ba442d8d`) | ~280 → 130 (65/platform) | < $0.10 → ~$0.0017 |
+
+The original request-count estimates assumed roughly double the reps actually configured in the experiment matrix — the cost ceilings were set generously on top of that, so actual spend on inference tokens came in **far** below budget on both runs (well under a cent total).
+
+| GPU cost (dedicated H100, per platform) | Estimate | Actual |
+|---|---|---|
+| Hourly rate | ~$2.00/hr | Simplismart ~$1.99/hr · Fireworks ~$2.40/hr |
+| Session cost | < $1.00 (assumes < 30 min active) | Each deployment was up for well under 30 minutes (deploy → benchmark → `make teardown-all`), so actual GPU spend stayed under $1/platform per run |
+
+**Bottom line: the estimates were correct as conservative ceilings** — actual spend (tokens + GPU time, both runs combined) was a small fraction of the $5/platform credit limit. See [Run-to-Run Validation](report/REPORT.md#run-to-run-validation) in the report for the full cost accounting per scenario.
 
 **Hard limit**: $4.50/platform abort threshold is coded into the runner. Neither platform's $5 credit will be exceeded.
 
