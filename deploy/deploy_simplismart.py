@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -63,6 +64,7 @@ def find_existing_compiled_repo(client, list_params_cls) -> str | None:
                 uuid = r.get("uuid")
                 print(f"[Step 1] Found existing compiled repo '{DEPLOYMENT_NAME}' in SUCCESS state.")
                 print(f"         UUID: {uuid} — skipping compilation.")
+                _write_env("SIMPLISMART_MODEL_REPO_UUID", uuid)
                 return uuid
     except Exception as e:
         print(f"[Step 1] Could not check existing repos: {e}")
@@ -146,6 +148,21 @@ def create_deployment(client, deploy_create_cls, model_repo_uuid: str) -> tuple[
     return deployment_id, model_endpoint
 
 
+def extract_inference_model_id(detail: dict) -> str | None:
+    """Find the model name to send in chat completion `model=` fields.
+
+    The HuggingFace source ID (e.g. `google/gemma-3-4b-it`, used to compile)
+    is NOT the inference model name — Simplismart assigns a separate short
+    name (e.g. `gemma-it`) that isn't exposed as its own field. The only
+    place it appears is inside the example request embedded in
+    `api_details.curl` (see deploy/simplismart_notes.md — sending the
+    HuggingFace ID at inference time returns a model-not-found error).
+    """
+    curl = (detail.get("api_details") or {}).get("curl", "")
+    match = re.search(r'"model"\s*:\s*"([^"]+)"', curl)
+    return match.group(1) if match else None
+
+
 def poll_health(client, deployment_id: str, model_endpoint: str) -> None:
     """Poll until deployment is Healthy, then write env vars."""
     print(f"\n[Step 4] Polling for healthy status (timeout: {DEPLOY_TIMEOUT_S // 60} min)...")
@@ -171,6 +188,18 @@ def poll_health(client, deployment_id: str, model_endpoint: str) -> None:
                 print(f"         Inference endpoint: {endpoint}")
                 _write_env("SIMPLISMART_BASE_URL", endpoint)
                 _write_env("SIMPLISMART_DEPLOYMENT_ID", deployment_id)
+
+                inference_model_id = extract_inference_model_id(detail)
+                if inference_model_id:
+                    print(f"         Inference model ID: {inference_model_id} (overrides HuggingFace source ID for chat completions)")
+                    _write_env("SIMPLISMART_MODEL_ID", inference_model_id)
+                else:
+                    print(f"         WARNING: could not find inference model name in api_details.curl —")
+                    print(f"                  SIMPLISMART_MODEL_ID is still '{HF_MODEL_ID}' (the HuggingFace source ID),")
+                    print(f"                  which will return a model-not-found error at inference time.")
+                    print(f"                  Inspect `client.get_model_deployment(deployment_id='{deployment_id}')` manually")
+                    print(f"                  and set SIMPLISMART_MODEL_ID in .env to the name shown in api_details.curl.")
+
                 print("\n[Simplismart] .env updated. Ready for benchmarking.")
                 print("\nREMINDER: python deploy/teardown_simplismart.py  (after benchmarking)")
                 return
