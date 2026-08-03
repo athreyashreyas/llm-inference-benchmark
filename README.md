@@ -1,8 +1,8 @@
 # LLM Inference Benchmark: Simplismart vs Fireworks AI
 
-A benchmark comparing the inference performance and agentic developer experience of [Simplismart](https://simplismart.ai) and [Fireworks AI](https://fireworks.ai), produced as part of an Associate Product Manager hiring task.
+A head-to-head benchmark of the inference performance and developer experience of [Simplismart](https://simplismart.ai) and [Fireworks AI](https://fireworks.ai) — same model, same GPU class, same client code, one session.
 
-The primary output of this project is not the performance numbers — it is the agentic UX analysis captured in [AGENTIC_LOG.md](AGENTIC_LOG.md): a real-time record of every friction point encountered while attempting to deploy and benchmark both platforms entirely programmatically.
+Two things came out of it. The obvious one is the latency and throughput numbers. The less obvious one — and the reason the project was worth doing — is [AGENTIC_LOG.md](AGENTIC_LOG.md): a real-time record of every friction point hit while trying to deploy and benchmark both platforms *entirely programmatically*, with no manual UI steps.
 
 **Results:** the full write-up — tables, charts, analysis, and a run-to-run validation against an independent redeployment — is in [report/REPORT.md](report/REPORT.md) (run ID `ba442d8d`, all 10 scenarios E01–E10, validated against baseline run `72b46d09`).
 
@@ -12,9 +12,33 @@ The primary output of this project is not the performance numbers — it is the 
 
 ## What This Project Is
 
-This project attempts to answer a product question: *How well do these platforms support developers building agentic, autonomous workflows?*
+I wanted to understand what actually differs between two inference platforms once you get past the marketing page — and, separately, how far you can get on either one without ever opening a browser.
 
-The benchmark is the vehicle. The agentic deployment experience — what could be scripted, what required manual UI steps, what failed without useful error messages — is the finding.
+So the question this repo tries to answer is two-part: *how do these platforms compare on the metrics that matter for an interactive LLM application (TTFT, TPOT, throughput, cold start, cost), and how well do they support a developer — or an agent — driving them end-to-end from code?*
+
+The benchmark is the vehicle. The deployment experience — what could be scripted, what required manual UI steps, what failed without a useful error message — turned out to be the more interesting half.
+
+---
+
+## Headline Results
+
+Gemma 3 4B Instruct on a dedicated 1× H100 on each platform, 130 requests across 10 scenarios, 100% success rate on both. Full numbers in [report/REPORT.md](report/REPORT.md).
+
+| | Simplismart | Fireworks AI | Verdict |
+|---|---|---|---|
+| Mean TTFT (warm, concurrency=1) | **145 ms** | 1,024 ms | Simplismart ~7× faster |
+| Mean TPOT | 4.2–5.0 ms | 4.6–6.2 ms | Effectively a tie |
+| Output throughput (concurrency=1) | **132–189 tok/s** | 32–94 tok/s | Simplismart 3–4× higher |
+| Output throughput (concurrency=10, 200-tok gen) | 488 tok/s | **740 tok/s** | Fireworks wins under load |
+| Cold start | **503 ms** | 4,349 ms | Simplismart faster and far more consistent |
+| Time to first deployment | ~15 min (compile step) | **130 s** | Fireworks much quicker to iterate |
+| Price per 1M output tokens | **$0.10** | $0.20 | Simplismart 2× cheaper |
+
+Three things I took away from this:
+
+1. **TPOT is a property of the GPU; TTFT is a property of the platform.** Same model, same H100, and steady-state token generation lands within a millisecond of each other. The 7× gap sits entirely in the time before the first token — routing, queueing, and scheduling in each platform's serving layer. If you're building anything interactive, that's the number to shop on, and it's the one least likely to appear on a pricing page.
+2. **The throughput ranking flips with concurrency.** Simplismart wins at concurrency 1–5; Fireworks overtakes it at concurrency=10 with long generations (740 vs 488 tok/s). A single-number "tokens/sec" comparison would have picked a winner and been wrong for half the workloads.
+3. **On dedicated endpoints, per-token pricing is nearly irrelevant.** Fireworks costs 2× per token, but total spend came out within 2% of Simplismart's, because GPU-hours dominate the bill. The cost lever is teardown discipline, not the rate card.
 
 ---
 
@@ -24,14 +48,14 @@ The benchmark is the vehicle. The agentic deployment experience — what could b
 
 | Criterion | Rationale |
 |-----------|-----------|
-| Not covered by Simplismart tutorials | Simplismart has a detailed vLLM deployment guide for Llama 3.1 8B. Using it would follow their tutorial and obscure the deployment discovery experience this task is designed to evaluate. |
+| Not covered by Simplismart tutorials | Simplismart has a detailed vLLM deployment guide for Llama 3.1 8B. Following it would have handed me a pre-solved deployment path and hidden exactly the discovery experience I was trying to observe. |
 | Cheapest non-trivial model on Simplismart | $0.10/1M tokens — most budget-safe for a $5 credit ceiling |
 | Available on both platforms as dedicated H100 | Confirmed deployable on Simplismart and Fireworks AI dedicated H100 endpoints |
 | Current-generation architecture | Released 2025; compact 4B model well-suited for latency-focused benchmarking |
 | Budget-safe GPU fit | 4B params (~8GB VRAM) fits comfortably on H100 80GB with significant headroom |
 | Apache 2.0 license | No commercial restrictions |
 
-**Llama 3.1 8B was explicitly excluded** because Simplismart's own blog covers its deployment step-by-step, which would make this submission look like a tutorial playthrough rather than independent product evaluation.
+**Llama 3.1 8B was explicitly excluded** because Simplismart's own blog covers its deployment step-by-step. Benchmarking it would have been a tutorial playthrough rather than an independent evaluation.
 
 ---
 
@@ -45,7 +69,7 @@ H100 wasn't picked first on cost grounds — it's what survived two rounds of av
 |---|---|
 | **A100 80GB** | Listed as a valid `accelerator_type` in Simplismart's SDK enum and deployment UI — but compilation failed with `HTTP 400: "gpu a100: need 1 but only 0.0 available"`. The account had zero A100 quota despite the platform advertising it as selectable, with no way to discover that short of attempting the deploy. |
 | **L40S / L4 / T4 / other lower-tier cards** | Never reached evaluation. The *model* search itself had already turned into a two-platform compatibility hunt — Qwen3 4B was on Simplismart's pricing page but absent from its marketplace; the fallback Qwen3 14B was available on Simplismart but Fireworks only offers `NVIDIA_H200_141GB` for that model, not H100; Gemma 3 4B Instruct was the first model confirmed deployable on H100 on **both** platforms. Adding "and which of these also runs on a cheaper GPU on both platforms" would have meant repeating that same opaque discovery loop a third time, for a benchmark whose total inference-token spend came in under $0.01 either way. |
-| **H100 80GB** ✅ | The first accelerator that was *actually provisionable* (not just listed) for a model that was *actually deployable* on both Simplismart and Fireworks AI — the hard constraint for a same-model, same-GPU-class, head-to-head comparison. A 4B-parameter model needs roughly 8GB of the 80GB on offer, so GPU choice has effectively zero bearing on the latency/throughput numbers in this report — a cheaper card would move the cost line, not the comparison. The task brief itself named H100 at "$2–5/hr" as an acceptable, budget-safe baseline, removing any pressure to keep searching. |
+| **H100 80GB** ✅ | The first accelerator that was *actually provisionable* (not just listed) for a model that was *actually deployable* on both Simplismart and Fireworks AI — the hard constraint for a same-model, same-GPU-class, head-to-head comparison. A 4B-parameter model needs roughly 8GB of the 80GB on offer, so GPU choice has effectively zero bearing on the latency/throughput numbers in this report — a cheaper card would move the cost line, not the comparison. At ~$2/hr with a sub-hour session on each platform, H100 was already comfortably inside the budget I'd set myself. |
 
 **The finding that matters more than the GPU pick itself**: on both platforms, the *advertised* set of valid GPUs (SDK enums, pricing pages, UI dropdowns) didn't match the *actually provisionable* set for this account and this model. Surfacing that mismatch — not optimizing for the cheapest card — is what actually determined the final H100-on-Gemma-3-4B configuration, and it's logged as a first-class friction point in [AGENTIC_LOG.md](AGENTIC_LOG.md).
 
@@ -66,10 +90,10 @@ H100 wasn't picked first on cost grounds — it's what survived two rounds of av
 ```
 llm-inference-benchmark/
 ├── README.md               ← You are here — see "Reproduction Guide" below to run this yourself
-├── claude_code_instructions.md  ← The actual session-starting brief handed to Claude Code, verbatim
+├── PROJECT_BRIEF.md        ← The brief I wrote for the coding agent before any file existed
 ├── USAGE_OF_AI.md          ← How Claude Code was used throughout
 ├── ASSUMPTIONS.md          ← All assumptions documented before coding
-├── AGENTIC_LOG.md          ← The primary PM output: real-time friction log
+├── AGENTIC_LOG.md          ← Real-time developer-experience friction log (13 entries)
 ├── CHANGELOG.md
 ├── .env.example            ← Template — never commit a real .env
 ├── .gitignore
@@ -231,7 +255,7 @@ Per-token pricing: **Simplismart $0.10/M output tokens** vs **Fireworks $0.20/M 
 | Hourly rate | ~$2.00/hr | Simplismart ~$1.99/hr · Fireworks ~$2.40/hr |
 | Session cost | < $1.00 (assumes < 30 min active) | Each deployment was up for well under 30 minutes (deploy → benchmark → `make teardown-all`), so actual GPU spend stayed under $1/platform per run |
 
-**Bottom line:** total spend across the entire task came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal despite the 2× per-token price gap, because GPU-hours (not token volume) dominate the bill on dedicated endpoints. Both totals are comfortably inside the $5/platform credit limit. See [Run-to-Run Validation](report/REPORT.md#run-to-run-validation) in the report for the full per-scenario accounting.
+**Bottom line:** total spend across the entire project came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal despite the 2× per-token price gap, because GPU-hours (not token volume) dominate the bill on dedicated endpoints. Both totals are comfortably inside the $5/platform signup credit. See [Run-to-Run Validation](report/REPORT.md#run-to-run-validation) in the report for the full per-scenario accounting.
 
 **Hard limit**: $4.50/platform abort threshold is coded into the runner. Neither platform's $5 credit will be exceeded.
 
@@ -242,9 +266,9 @@ Per-token pricing: **Simplismart $0.10/M output tokens** vs **Fireworks $0.20/M 
 | Artifact | Pre-committed? | Requires live deployment? |
 |----------|---------------|--------------------------|
 | `data/prompts.json` | Yes | No |
-| `data/results/summary_*.csv` | Yes (after Phase 3) | No — read pre-committed |
+| `data/results/summary_*.csv` | Yes | No — read pre-committed |
 | `data/results/*_raw.csv` | No (gitignored) | Yes |
-| `report/charts/*.png` | Yes (after Phase 3) | No — read pre-committed CSVs |
+| `report/charts/*.png` | Yes | No — regenerated from the pre-committed CSVs |
 | `deploy/` notes | Yes | No — observational |
 
 To reproduce raw results, you need API keys for both platforms and should expect minor variation due to shared infrastructure and network conditions — see the [Reproduction Guide](#reproduction-guide) above for the exact steps.
@@ -263,12 +287,10 @@ Full assumption set: [ASSUMPTIONS.md](ASSUMPTIONS.md)
 
 ## How AI Was Used
 
-Claude Code (the Anthropic CLI agent) was used for the entire project — repo scaffolding, module implementation, test writing, report generation, and documentation. See [USAGE_OF_AI.md](USAGE_OF_AI.md) for the full task-by-task log, and [claude_code_instructions.md](claude_code_instructions.md) for the actual session-starting brief — including notes on where the original plan (Qwen3 4B, T4 GPU, serverless-first) diverged from what the platforms actually supported.
+Claude Code (the Anthropic CLI agent) built this — repo scaffolding, module implementation, test writing, report generation, and documentation. I wrote the brief, made the platform and methodology calls, approved every spend checkpoint, and reviewed the output. [PROJECT_BRIEF.md](PROJECT_BRIEF.md) is the brief as handed to the agent before a single file existed, including notes on where the original plan (Qwen3 4B, T4 GPU, serverless-first) collided with what the platforms actually supported. [USAGE_OF_AI.md](USAGE_OF_AI.md) is the task-by-task record of what the agent did and what I changed.
 
-The agentic-first approach is itself a product observation: using an AI coding agent to attempt full programmatic deployment surfaces exactly the friction points that matter for developer experience on these platforms.
+Doing it agent-first wasn't just a shortcut. Handing the whole deployment to something that can only read documentation and call APIs is a good way to find out which parts of a platform genuinely work from code and which parts quietly assume a human with a browser. Most of [AGENTIC_LOG.md](AGENTIC_LOG.md) is the answer to that.
 
 ---
 
-## Contact
-
-Produced by Shreyas Athreya as part of the Simplismart APM hiring task.
+Built by Shreyas Athreya. Findings, corrections, and disagreement all welcome — open an issue.

@@ -1,8 +1,8 @@
 # Usage of AI (Claude Code)
 
-This document records every significant task delegated to Claude Code throughout this project. Updated after each completed task. The agentic-first approach is a core requirement of this task — this file is evidence of that approach.
+Every significant task delegated to Claude Code on this project, logged as it happened. Building the whole thing agent-first was the point, not a shortcut: handing deployment to something that can only read docs and call APIs is a good way to find out which parts of a platform genuinely work from code — most of [AGENTIC_LOG.md](AGENTIC_LOG.md) came out of exactly that.
 
-The session began with a single comprehensive brief — [claude_code_instructions.md](claude_code_instructions.md) — handed to Claude Code before any file in this repo existed. It's reproduced there verbatim (evaluator name redacted) along with notes on where reality later diverged from the plan (model fallback chain, GPU choice, deployment type). It's worth reading first: the PM rationale that runs through `ASSUMPTIONS.md` and `README.md` was specified there, by the candidate, before a single line of code was written — the timeline below is the record of the agent executing against it.
+The session began with one comprehensive brief — [PROJECT_BRIEF.md](PROJECT_BRIEF.md) — handed to Claude Code before any file in this repo existed, along with notes on where reality later diverged from the plan (model fallback chain, GPU choice, deployment type). Worth reading first: the rationale running through `ASSUMPTIONS.md` and `README.md` was specified there before a line of code was written. The timeline below is the record of the agent executing against it, and of where I had to step in.
 
 ---
 
@@ -12,17 +12,17 @@ The session began with a single comprehensive brief — [claude_code_instruction
 
 | # | Task | What was prompted | Output quality | What I reviewed or changed |
 |---|------|------------------|----------------|---------------------------|
-| 1 | Read and interpret task spec | Provided [claude_code_instructions.md](claude_code_instructions.md) and `apm-hiring-task.pdf`; asked agent to read both and start Phase 1 | Excellent — agent identified phase structure and produced correct file ordering | Confirmed phase structure matched spec |
-| 2 | Create ASSUMPTIONS.md | Agent scaffolded all 12 assumption entries from the spec, including model rationale, deployment strategy, budget constraints, and competitor selection reasoning | High quality — all required entries present, PM framing applied | Reviewed for completeness against spec checklist |
+| 1 | Read and interpret the brief | Provided [PROJECT_BRIEF.md](PROJECT_BRIEF.md); asked the agent to read it fully and start Phase 1 | Excellent — agent identified the phase structure and produced correct file ordering | Confirmed the phase structure matched the brief |
+| 2 | Create ASSUMPTIONS.md | Agent scaffolded all 12 assumption entries from the brief, including model rationale, deployment strategy, budget constraints, and competitor selection reasoning | High quality — all required entries present, product framing applied | Reviewed for completeness against the brief's checklist |
 | 3 | Create AGENTIC_LOG.md | Agent initialised the log with format reference and a session bootstrap entry framed as a product observation | Good — correct format, appropriate first entry | Verified entry includes all 7 required fields |
-| 4 | Create USAGE_OF_AI.md | Agent created this file | Meta-recursive — agent is documenting itself | Verified format matches spec |
-| 5 | Create .gitignore, .env.example, config/ files | Agent generated all config files with env var references, no hardcoded secrets | High quality — matched spec exactly | Verified .env.example has no real keys |
+| 4 | Create USAGE_OF_AI.md | Agent created this file | Meta-recursive — agent is documenting itself | Verified the format matched the brief |
+| 5 | Create .gitignore, .env.example, config/ files | Agent generated all config files with env var references, no hardcoded secrets | High quality — matched the brief exactly | Verified .env.example has no real keys |
 | 6 | Create data/prompts.json | Agent generated 30 prompts across short/medium/long types covering geography, science, history, coding, math, writing | Good — spot-checked for topic diversity and length-appropriateness | Reviewed all 30 prompts for ambiguity and real-time information requirements |
 | 7 | Create benchmark/ modules | Agent implemented runner.py, metrics.py, prompts.py, report.py with full type hints, logging, streaming TTFT, concurrency control, cost guard | High quality — complex async code with proper error handling | Reviewed TTFT timing logic, semaphore usage, cost guard thresholds, retry logic |
 | 8 | Create tests/test_runner.py | Agent wrote unit tests with mock responses, zero real API calls | Good — covers TTFT calculation, aggregation math, error handling, dry-run | Verified no real API calls in test suite |
-| 9 | Create requirements.txt, Makefile | Agent generated both files with correct dependencies and make targets | High quality | Verified make targets match spec |
+| 9 | Create requirements.txt, Makefile | Agent generated both files with correct dependencies and make targets | High quality | Verified make targets matched the brief |
 | 10 | Create deploy/ notes templates | Agent created structured templates for both platforms | Good | Verified all capture fields are present |
-| 11 | Create README.md | Agent wrote full README with model rationale, setup instructions, cost estimates, limitations | High quality — PM-framed, evaluator-ready | Reviewed for completeness and clarity |
+| 11 | Create README.md | Agent wrote full README with model rationale, setup instructions, cost estimates, limitations | High quality — led with product framing rather than code | Reviewed for completeness and clarity |
 | 12 | Create CHANGELOG.md | Agent generated initial changelog entry | Standard | Verified format |
 
 ---
@@ -41,7 +41,7 @@ The session began with a single comprehensive brief — [claude_code_instruction
 | 20 | Debug Fireworks model ID 404 | `gemma-3-4b-instruct` returned 404; agent listed all Gemma models via GET /v1/accounts/fireworks/models?pageSize=200 and found `gemma-3-4b-it` | Excellent — direct API enumeration, correct fix | Confirmed model ID in Fireworks console |
 | 21 | Fix Fireworks teardown DELETE 400 | Recent inference requests blocked deletion; agent added `?ignoreChecks=true` query param | Correct and targeted fix | Verified teardown_fireworks.py handles 200 and 204 as success |
 | 22 | Run P0 benchmark on both platforms | Prompted `make benchmark-p0`; agent confirmed deployment health first, then ran 45 requests per platform with warm-up | Benchmark completed — 100% success rate, 45 requests each | Reviewed summary CSV to verify scenario IDs and concurrency levels matched experiment matrix |
-| 23 | Add AGENTIC_LOG.md Phase 2 entries | Asked agent to document all Phase 2 friction points in log format with product impact and recommended fix | High quality — 5 entries, all with correct severity, evidence, and PM framing | Reviewed for accuracy against what actually happened |
+| 23 | Add AGENTIC_LOG.md Phase 2 entries | Asked agent to document all Phase 2 friction points in log format with product impact and recommended fix | High quality — 5 entries, all with correct severity, evidence, and product framing | Reviewed for accuracy against what actually happened |
 
 ---
 
@@ -55,12 +55,12 @@ The session began with a single comprehensive brief — [claude_code_instruction
 
 ---
 
-## Observations on Using Claude Code for This Task
+## Observations on Using Claude Code for This Project
 
 **What worked well:**
 - Scaffolding large file structures from detailed specifications — the agent reliably translated spec requirements into working file content
 - Generating coherent Python async code with proper error handling on the first pass
-- Maintaining consistent framing (PM persona, product impact language) across documentation files
+- Maintaining consistent framing (product-impact language rather than bug-report language) across documentation files
 - Debugging API errors by reasoning about what information is available and where to look — e.g., discovering the `id` header requirement from `api_details.curl` in the deployment response, discovering the correct Fireworks model ID by listing all models
 - Idempotent script design — the agent recognised the need for compile-once-deploy-many behaviour without being explicitly asked
 
@@ -71,5 +71,5 @@ The session began with a single comprehensive brief — [claude_code_instruction
 - Reviewing agentic log entries for genuine product insight vs. surface-level bug reports
 - Deciding which friction points merit Severity 3 vs. Severity 2 classification
 
-**What this demonstrates:**
-Claude Code can handle the mechanical complexity of a multi-file project build and API debugging session in a single conversation. The PM value-add is not in the code generation — it is in the product observations, the framing of friction as business impact, and the recommendations that emerge from genuine deployment experience. The agent surfaces the evidence; the PM interprets what it means for the product.
+**What I took from it:**
+Claude Code handled the mechanical complexity of a multi-file build and an API debugging session in one sitting, and it did the platform archaeology — enumerating models, reading deployment response payloads for undocumented headers — faster and more patiently than I would have. What it couldn't do was decide what any of it *meant*. The severity calls, the "we have credits, so why is this failing?" reasoning that led to the Fireworks billing gate, the judgement about which frictions are real product gaps versus my own unfamiliarity — those stayed with me. The agent surfaces evidence; interpreting it is still the job.

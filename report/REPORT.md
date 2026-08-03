@@ -104,7 +104,7 @@ Simplismart cold start: **503 ms**. Fireworks cold start: **4,349 ms**. Both end
 
 ### Cost
 
-Simplismart prices Gemma 3 4B at **$0.10/M output tokens**, while Fireworks prices it at **$0.20/M** — Fireworks is 2× more expensive per token. Yet total spend across the task came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal. The 2× per-token gap and the near-equal totals are not in tension: token spend was negligible (a tiny fraction of a dollar either way) at this benchmark's volume, so it has essentially no bearing on the bottom line. The dominant cost driver for dedicated H100 endpoints is GPU-hours, not token volume; both deployments were active for well under an hour total (deploy → benchmark → teardown) and were torn down immediately after this run completed, which is what actually determined the near-equal totals.
+Simplismart prices Gemma 3 4B at **$0.10/M output tokens**, while Fireworks prices it at **$0.20/M** — Fireworks is 2× more expensive per token. Yet total spend across the project came to **≈$1.73 on Simplismart and ≈$1.70 on Fireworks** — roughly equal. The 2× per-token gap and the near-equal totals are not in tension: token spend was negligible (a tiny fraction of a dollar either way) at this benchmark's volume, so it has essentially no bearing on the bottom line. The dominant cost driver for dedicated H100 endpoints is GPU-hours, not token volume; both deployments were active for well under an hour total (deploy → benchmark → teardown) and were torn down immediately after this run completed, which is what actually determined the near-equal totals.
 
 ![p99 Tail Latency](charts/p99_comparison.png)
 

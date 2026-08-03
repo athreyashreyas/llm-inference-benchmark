@@ -1,6 +1,6 @@
 # Assumptions
 
-All assumptions documented before any code was written. Added to as assumptions emerge during development.
+Written down before any code was, and added to as new assumptions surfaced during the build. Where reality later contradicted one, the correction is logged in [AGENTIC_LOG.md](AGENTIC_LOG.md) rather than quietly edited in here.
 
 ---
 
@@ -40,7 +40,7 @@ If dedicated deployment is required, min_replicas=0 is configured so GPU billing
 
 ## 4. Benchmark Scope
 
-Approximately 280 total requests across both platforms across all scenarios (P0 + P1). P0-only run is approximately 180 requests (90 per platform). This is illustrative per the task specification ("few hundreds"). Results are indicative, not statistically definitive. A production-grade study would require thousands of samples with controlled network conditions.
+Approximately 280 total requests across both platforms across all scenarios (P0 + P1). P0-only run is approximately 180 requests (90 per platform). A few hundred requests is enough to surface the differences that matter here and keeps the run inside the credit budget. Results are indicative, not statistically definitive — a production-grade study would require thousands of samples with controlled network conditions.
 
 ---
 

@@ -1,64 +1,62 @@
-# Claude Code Instructions — Simplismart APM Hiring Task
-# LLM Inference Benchmark: Simplismart vs Fireworks AI
+# Project Brief — LLM Inference Benchmark: Simplismart vs Fireworks AI
 
-> This is the actual session-starting brief handed to Claude Code before a single
-> file in this repository existed — reproduced verbatim except for redacting the
-> evaluator's name to `[the evaluator]`. It's referenced as the first entry in
+> This is the brief I handed to Claude Code before a single file in this repository
+> existed. It's kept here because it's the honest baseline: everything downstream —
+> the model rationale in `ASSUMPTIONS.md`, the framing in `README.md`, the log format
+> in `AGENTIC_LOG.md` — was specified up front, and the agent's job was to execute
+> against it. It's referenced as the first entry in
 > [USAGE_OF_AI.md](USAGE_OF_AI.md)'s task timeline.
 >
-> Read this as the **plan**, not the **outcome** — several specifics here were
-> later revised once real platform behaviour didn't match the brief's assumptions:
-> - **Model**: specifies Qwen3 4B as primary (Gemma 3 4B as fallback). Qwen3 4B was
->   absent from Simplismart's marketplace despite being on its pricing page; the
->   resulting fallback chain (→ Qwen3 14B → Gemma 3 4B) is in [AGENTIC_LOG.md](AGENTIC_LOG.md).
-> - **GPU**: assumes a T4 at $1.20/hr. Neither platform offered a working T4/A100
->   path for the model that ultimately worked on both platforms — the project ran
->   on **H100** instead (see "Why H100" in [README.md](README.md)).
-> - **Deployment type**: the brief's preference order leads with serverless/shared
+> Read this as the **plan**, not the **outcome**. Several specifics were revised once
+> real platform behaviour didn't match the assumptions here:
+> - **Model**: this brief names Qwen3 4B as primary (Gemma 3 4B as fallback). Qwen3 4B
+>   turned out to be absent from Simplismart's marketplace despite being on its pricing
+>   page; the resulting fallback chain (→ Qwen3 14B → Gemma 3 4B) is in
+>   [AGENTIC_LOG.md](AGENTIC_LOG.md).
+> - **GPU**: assumes a T4 at $1.20/hr. Neither platform offered a working T4/A100 path
+>   for the one model that was deployable on both, so the project ran on **H100**
+>   instead (see "Why H100" in [README.md](README.md)).
+> - **Deployment type**: the preference order below leads with serverless/shared
 >   endpoints. Both platforms ultimately required **dedicated** endpoints for
 >   Gemma 3 4B — itself a logged finding.
 >
-> None of these were silent substitutions — each pivot is logged with evidence at
-> the point it happened. This brief is the baseline the rest of the repo should be
-> read against, and its presence here is the clearest evidence that the PM framing
-> running through `ASSUMPTIONS.md` and `README.md` originated with the candidate,
-> not the agent — the brief *specifies* that rationale before any code exists; the
-> agent's job was to execute against it.
+> None of these were silent substitutions. Each pivot is logged with evidence at the
+> point it happened.
 
 ---
 
-## Who You Are
+## The Role You're Playing
 
-You are completing a hiring task for an Associate Product Manager role at Simplismart.
-The attached PDF contains the official task specification. Read it fully before starting.
+You are building an independent benchmark of two LLM inference platforms —
+Simplismart and Fireworks AI — and writing up what you find.
 
-You are operating as a PM candidate with strong technical depth — not a pure ML engineer,
-and not a pure product analyst. Your lens is product-first: you care about developer
-experience, GTM implications, and what friction points reveal about product gaps. You
-happen to be technically fluent enough to build this yourself and use AI agents
-to do the heavy lifting.
+Operate with a product lens, not a pure-ML-engineering one: care about developer
+experience, about what friction points reveal about product gaps, and about what a
+developer would actually need to know before picking one of these platforms. Be
+technically fluent enough to build the whole thing, but lead with what the results
+*mean*.
 
-You are using Claude Code as your coding agent throughout this task. That is intentional
-and required by the task. Document how you use it.
+Claude Code is the coding agent for this project throughout. That's deliberate —
+see "The Agentic-First Mandate" below — and it needs documenting as you go.
 
-The evaluator — [the evaluator] — has explicitly said the product thinking,
-UX critique, and agentic experience observations matter more than code sophistication.
-Your technical work enables the product observations. Prioritise accordingly.
+The product thinking, the UX critique, and the observations about what it's like to
+drive these platforms from code matter more than code sophistication. The technical
+work exists to enable those observations. Prioritise accordingly.
 
 ---
 
-## What You Must Deliver
+## What Must Be Delivered
 
-1. A working GitHub repository with benchmark code, results, and documentation
+1. A working public GitHub repository with benchmark code, results, and documentation
 2. Real deployments on both Simplismart and Fireworks AI with actual API calls made
-3. Performance benchmark results from both platforms with the same model
-4. A detailed agentic UX log — the most important PM output of this project
+3. Performance benchmark results from both platforms with the same model on the same GPU class
+4. A detailed developer-experience log — the finding that makes this more than a speed test
 5. A USAGE_OF_AI.md documenting how Claude Code was used throughout
 
-Deployment is non-negotiable. You must actually connect to both platforms and
-make real API calls. If any part of deployment cannot be fully automated, that
-failure mode is itself a product finding — document it, but still complete the
-deployment manually and proceed.
+Deployment is non-negotiable. Actually connect to both platforms and make real API
+calls — no simulated results, no numbers from someone else's blog post. If any part
+of deployment cannot be automated, that failure mode is itself a finding: document
+it, complete the step manually, and proceed.
 
 ---
 
@@ -151,8 +149,8 @@ explicitly in the project documentation:
 
 1. It is the only sub-10B model on Simplismart's confirmed model list that is not
    covered by Simplismart's own deployment tutorials. Simplismart has a detailed
-   step-by-step vLLM guide specifically for Llama 3.1 8B, which would eliminate
-   the deployment discovery experience this task is designed to evaluate.
+   step-by-step vLLM guide specifically for Llama 3.1 8B, which would hand us a
+   pre-solved deployment path and hide the discovery experience we want to observe.
 
 2. It is the cheapest non-trivial LLM on Simplismart at $0.10/1M tokens, making
    it the most budget-safe choice for a $5 credit limit.
@@ -173,9 +171,8 @@ explicitly in the project documentation:
 7. 4B parameters: ~8GB VRAM in BF16. Fits comfortably on a T4 GPU (16GB).
 
 Llama 3.1 8B was explicitly excluded: Simplismart's own blog provides a full
-deployment guide for it, which would reduce the agentic UX discovery value
-and make the submission appear to follow their tutorial rather than demonstrate
-independent product thinking.
+deployment guide for it, which would reduce the discovery value and turn the write-up
+into a tutorial playthrough rather than an independent evaluation.
 
 ### Fallback: Gemma 3 4B Instruct
 
@@ -229,9 +226,10 @@ llm-inference-benchmark/
 ### Philosophy
 
 This benchmark is illustrative, not production-grade. A few hundred total requests
-across both platforms is sufficient per the task specification. The goal is to
-produce real, honest numbers — not impressive-sounding numbers. Prioritise
-completing P0 scenarios cleanly before attempting P1.
+across both platforms is enough to surface the differences that matter, and the
+budget won't stretch much further anyway. The goal is real, honest numbers — not
+impressive-sounding ones. Prioritise completing P0 scenarios cleanly before
+attempting P1.
 
 ### Experiment Matrix
 
@@ -457,9 +455,9 @@ make clean          → remove __pycache__ and runtime artifacts
 
 ---
 
-## AGENTIC_LOG.md — The Most Important PM Output
+## AGENTIC_LOG.md — The Most Important Output
 
-This file is the primary source material for the agentic UX analysis section of
+This file is the primary source material for the developer-experience analysis in
 the final report. It must be maintained in real time, not written retrospectively.
 
 Log an entry every time any of the following occurs:
@@ -493,9 +491,9 @@ For each entry, use this exact format:
 - Recommended fix: [A specific, concrete platform change that would eliminate this friction]
 ```
 
-The product impact and recommended fix fields are what make this a PM document rather
-than a bug report. Every friction point should be framed in terms of what it costs
-developers and how fixing it would advance the platform's positioning.
+The product impact and recommended fix fields are what make this a product document
+rather than a bug report. Every friction point should be framed in terms of what it
+costs developers and how fixing it would advance the platform's positioning.
 
 Expect between 8 and 20 entries across both platforms. More entries do not mean
 the platform is worse — they mean you observed more carefully. A shallow log with
@@ -515,7 +513,8 @@ Format:
 Include entries for: repo scaffolding, each module written, prompt bank generation,
 test writing, report generation, and any other meaningful agent contribution.
 
-This file demonstrates the agentic-first approach required by the task specification.
+This file is the record of the agentic-first approach — what was delegated, what came
+back, and what a human had to fix.
 
 ---
 
@@ -536,7 +535,7 @@ Required entries:
    GPU billing stops when idle. Paused manually if autoscale unavailable.
 
 4. Benchmark scope: Approximately 280 total requests across both platforms.
-   This is illustrative per the task specification ("few hundreds").
+   This is illustrative — a few hundred requests, not a production-grade study.
    Results are indicative, not statistically definitive.
 
 5. TTFT measurement: Requires streaming (stream=True). If unavailable on either
@@ -568,16 +567,17 @@ Each file should capture:
 - Screenshots to capture (list what to capture; actual images added manually)
 - Time taken from account creation to first successful API response
 
-This becomes evidence in the report and demonstrates that deployment actually happened.
+This is the evidence that deployment actually happened, and the raw material the
+report's setup section is built from.
 
 ---
 
 ## README.md
 
-The README must be written as if a reviewer with no prior context will read it.
+The README must be written as if someone with no prior context will read it.
 It should clearly communicate:
 
-- What this project is and why it exists (the hiring task context)
+- What this project is and why it exists
 - Why Qwen3 4B was chosen as the benchmark model (full reasoning)
 - Why Fireworks AI was chosen as the competitor (positioning context)
 - How to set up and run the benchmark (step by step)
@@ -586,8 +586,9 @@ It should clearly communicate:
 - Limitations and assumptions (reference ASSUMPTIONS.md)
 - How AI was used (reference USAGE_OF_AI.md)
 
-The README is read by the hiring team. It should reflect the PM persona — clear,
-structured, and aware of the product context it sits in.
+The README is the front door. It should be clear, structured, and aware of the
+product context it sits in — someone should be able to read it and know whether
+either platform suits their workload without opening another file.
 
 ---
 
@@ -711,26 +712,25 @@ Step 4: Commit results
 
 ---
 
-## Notes on PM Persona and Report Framing
+## Notes on Voice and Report Framing
 
-When writing any documentation that a human will read — README, ASSUMPTIONS.md,
-deploy notes, agentic log entries — write as a PM candidate who:
+When writing any documentation a human will read — README, ASSUMPTIONS.md, deploy
+notes, agentic log entries — write as someone who:
 
-- Understands the technical details but leads with product implications
+- Understands the technical details but leads with what they imply for a user
 - Frames platform limitations in terms of developer experience and business impact
 - Makes opinionated recommendations, not vague suggestions
 - Is honest about what worked, what did not, and why it matters
 
-The evaluator is not looking for perfect code. They are looking for evidence that
-you can think about a developer platform from the outside in — as a user of it,
-as a product person who could improve it, and as someone who can articulate what
-good looks like.
+Perfect code is not the point. The point is thinking about a developer platform from
+the outside in — as a user of it, as someone who could improve it, and as someone who
+can articulate what good looks like.
 
-Every friction point in AGENTIC_LOG.md should answer: "If I were a developer
-building an agentic application on this platform, what would this friction cost me,
-and how would I fix it if I owned the product?"
+Every friction point in AGENTIC_LOG.md should answer: "If I were a developer building
+an agentic application on this platform, what would this friction cost me, and how
+would I fix it if I owned the product?"
 
-That is the PM lens. Apply it throughout.
+Apply that lens throughout.
 
 ---
 

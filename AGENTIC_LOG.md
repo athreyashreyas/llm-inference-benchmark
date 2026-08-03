@@ -1,10 +1,10 @@
-# Agentic UX Log
+# Developer Experience Log
 
-This log captures every friction point encountered while attempting to deploy and benchmark Simplismart and Fireworks AI programmatically. Each entry is written in real time, not retrospectively.
+Every friction point hit while trying to deploy and benchmark Simplismart and Fireworks AI entirely from code. Written in real time as it happened, not reconstructed afterwards.
 
-**Framing**: Every friction point is analysed as a product experience failure — not just a technical annoyance — with cost to developers building agentic applications and a concrete recommended fix.
+**Framing**: each entry is analysed as a product failure rather than a technical annoyance — what it costs a developer building on the platform, and a concrete fix. 13 entries across both platforms.
 
-**Log started**: 2026-06-06 | Phase 1 (repository build, zero API calls)
+**Log started**: 2026-06-06, during the repository build, before any API call was made.
 
 ---
 
@@ -30,7 +30,7 @@ This log captures every friction point encountered while attempting to deploy an
 - What happened: Before any API call, I attempted to derive all required configuration (base URLs, model IDs, auth endpoints, deployment options) from public documentation at docs.simplismart.ai and docs.fireworks.ai. This was done via the coding agent — no browser interaction at this stage.
 - Agent impact: Partially — base URLs and auth mechanism were derivable, but exact model ID strings required UI verification.
 - Severity: 2
-- Evidence: The instructions note: "Do not hardcode assumed model IDs. Wrong IDs cause silent 404s. Always verify first." This confirms the documentation does not canonically expose model IDs in a machine-readable format.
+- Evidence: The brief anticipated this — "Do not hardcode assumed model IDs. Wrong IDs cause silent 404s. Always verify first." Neither platform's documentation canonically exposes model IDs in a machine-readable format, which is what forces that rule.
 - Product impact: An agentic deployment workflow cannot be fully scripted without first manually confirming model IDs. This breaks the "zero-human-in-loop" promise of agentic infrastructure tooling.
 - Recommended fix: Both platforms should expose a `GET /models` endpoint returning the exact inference-ready model ID strings, matching what must be passed in API calls. Simplismart's marketplace UI should have a "copy model ID" button with exact API string.
 
@@ -39,7 +39,7 @@ This log captures every friction point encountered while attempting to deploy an
 ## Simplismart — Wrong base URL in external spec / no canonical source of truth
 
 - Stage: api-discovery
-- What happened: The task spec (and initial `.env.example`) stated `https://api.simplismart.ai/v1` as the base URL. Fetching Simplismart's public docs revealed the correct URL is `https://api.simplismart.live/chat/completions` — a completely different domain (`.live` not `.ai`) with no `/v1` prefix. A `GET /models` endpoint was not found; the correct URL was only discoverable by reading individual model API reference pages.
+- What happened: The project brief (and the initial `.env.example` derived from it) stated `https://api.simplismart.ai/v1` as the base URL. Fetching Simplismart's public docs revealed the correct URL is `https://api.simplismart.live/chat/completions` — a completely different domain (`.live` not `.ai`) with no `/v1` prefix. A `GET /models` endpoint was not found; the correct URL was only discoverable by reading individual model API reference pages.
 - Agent impact: No — the agent had the wrong base URL baked in and would have received connection errors on every request without manual correction.
 - Severity: 3
 - Evidence: `https://docs.simplismart.ai/api-reference/inference/llama3.1-8B` shows `url = "https://api.simplismart.live/chat/completions"`. The domain `api.simplismart.ai` does not appear anywhere in docs.

@@ -1,6 +1,19 @@
 # Changelog
 
-## [0.3.1] — 2026-06-08 — Consistency pass: align repo to submitted report
+## [0.4.0] — 2026-08-03 — Reframe as a standalone benchmark project
+
+### Changed
+- `README.md` — added a **Headline Results** section up front (comparison table plus the three conclusions worth carrying away), so the payoff is readable without opening the report. Rewrote the intro and "What This Project Is" to state the two-part question the project answers.
+- `claude_code_instructions.md` → **`PROJECT_BRIEF.md`** — same brief, reframed as the project's own baseline specification. Removed the framing that only made sense in its original context.
+- `AGENTIC_LOG.md` — retitled "Developer Experience Log"; header now states the entry count and the analytical frame. All 13 findings unchanged.
+- `USAGE_OF_AI.md`, `ASSUMPTIONS.md`, `report/REPORT.md` — reworded the handful of passages that referenced an external specification or reader. No numbers, methodology, or findings touched.
+
+### Note
+No benchmark data, chart, or metric changed in this release — it is a documentation and framing pass only.
+
+---
+
+## [0.3.1] — 2026-06-08 — Consistency pass: align cost and request-count figures across the repo
 
 ### Changed
 - `README.md` — rewrote "Estimated Costs": removed the est.→actual token-spend tables and sub-cent figures (`~$0.0007`, `~$0.0017`); replaced with authoritative per-token pricing ($0.10/M Simplismart vs $0.20/M Fireworks) and total task spend (≈$1.73 vs ≈$1.70); kept GPU-hour cost table and the $4.50/platform abort guard
